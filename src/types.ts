@@ -1,10 +1,11 @@
 export type ProjectId = "tiny-adventure" | "pocket-puzzler" | "cozy-farm";
-export type UpgradeId = "tools" | "marketing" | "team" | "pipeline";
+export type UpgradeId = "research" | "prototype" | "workstation" | "playtesting" | "storefront" | "team" | "pipeline";
 
 export interface DevelopmentPhase {
   id: string;
   name: string;
   description: string;
+  action: string;
   share: number;
 }
 
@@ -28,6 +29,8 @@ export interface UpgradeDefinition {
   baseCost: number;
   costGrowth: number;
   unlockGames: number;
+  phaseId?: string;
+  efficiencyPerLevel?: number;
 }
 
 export interface GameState {
