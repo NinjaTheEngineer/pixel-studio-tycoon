@@ -15,6 +15,7 @@ export function createInitialState(now = Date.now()): GameState {
     currentGameName: "Choose your first project",
     currentIdea: null,
     ideaOptions: generateIdeaOptions(0),
+    milestonePaymentsClaimed: [],
     currentProjectId: "tiny-adventure",
     selectedProjectId: "tiny-adventure",
     projectQueue: [],
@@ -112,6 +113,28 @@ export function tap(state: GameState): void {
   if (!state.currentIdea) return;
   const directWork = getClickPower(state);
   state.work = Math.min(getRequiredWork(state), state.work + directWork);
+  claimMilestonePayments(state);
+}
+
+export function claimMilestonePayments(state: GameState): number {
+  if (!state.currentIdea) return 0;
+  const shares = [0.05, 0.1, 0.15, 0.2];
+  const required = getRequiredWork(state);
+  let cumulative = 0;
+  let earned = 0;
+  for (let index = 0; index < shares.length; index += 1) {
+    cumulative += DEVELOPMENT_PHASES[index].share;
+    if (state.work < required * cumulative || state.milestonePaymentsClaimed.includes(index)) continue;
+    const payment = Math.round(getCurrentProject(state).moneyReward * shares[index]);
+    state.milestonePaymentsClaimed.push(index);
+    state.money += payment;
+    earned += payment;
+  }
+  return earned;
+}
+
+export function getReleasePayment(state: GameState): number {
+  return Math.round(getCurrentProject(state).moneyReward * 0.5);
 }
 
 export function canPublish(state: GameState): boolean {
@@ -121,10 +144,12 @@ export function canPublish(state: GameState): boolean {
 export function publish(state: GameState): boolean {
   if (!canPublish(state)) return false;
   const project = getCurrentProject(state);
-  state.money += project.moneyReward;
+  claimMilestonePayments(state);
+  state.money += getReleasePayment(state);
   state.fans += getFanReward(state, project);
   state.gamesPublished += 1;
   state.work = 0;
+  state.milestonePaymentsClaimed = [];
   startNextProject(state);
   state.currentIdea = null;
   state.ideaOptions = generateIdeaOptions(state.gamesPublished);
@@ -197,6 +222,7 @@ export function applyProduction(state: GameState, amount: number): number {
     const needed = getRequiredWork(state) - state.work;
     const applied = Math.min(needed, remaining);
     state.work += applied;
+    claimMilestonePayments(state);
     remaining -= applied;
     if (!canPublish(state)) break;
     if (!state.autoPublish || state.upgradeLevels.pipeline < 1) break;
