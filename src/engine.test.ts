@@ -4,6 +4,7 @@ import {
   buyUpgrade,
   canPublish,
   createInitialState,
+  getClickPower,
   getUpgradeCost,
   queueProject,
   tap,
@@ -33,5 +34,15 @@ describe("game economy", () => {
     state.money = getUpgradeCost(state, "pipeline");
     buyUpgrade(state, "pipeline");
     expect(queueProject(state, "tiny-adventure")).toBe(true);
+  });
+
+  it("buys an affordable upgrade and applies its effect", () => {
+    const state = createInitialState();
+    state.money = 20;
+
+    expect(buyUpgrade(state, "tools")).toBe(true);
+    expect(state.money).toBe(0);
+    expect(state.upgradeLevels.tools).toBe(1);
+    expect(getClickPower(state)).toBe(2);
   });
 });
