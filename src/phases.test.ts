@@ -44,4 +44,16 @@ describe("development phases", () => {
     tap(state);
     expect(state.work).toBe(1000);
   });
+
+  it("pays each completed development milestone exactly once", () => {
+    const state = createInitialState();
+    chooseDefaultIdea(state);
+    for (let index = 0; index < 15; index += 1) tap(state);
+    expect(state.money).toBe(5);
+    tap(state);
+    expect(state.money).toBe(5);
+    for (let index = 16; index < 35; index += 1) tap(state);
+    expect(state.money).toBe(15);
+    expect(state.milestonePaymentsClaimed).toEqual([0, 1]);
+  });
 });
