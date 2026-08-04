@@ -10,7 +10,9 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 
 - Unique generated titles for every release
 - Three brainstormed concepts before every project: safe, promising, and wild
-- Visible potential, risk, and workload tradeoffs
+- Visible potential, scope, and workload tradeoffs; Risk is hidden until it has a real consequence
+- Fixed company stages with 3 Bedroom releases, 5 Small Indie releases, and a larger Established Studio family
+- Workload grows 18% with every release inside a stage
 - First-run tutorial plus a permanent How to Play guide
 - Phase milestone funding before the final release payment
 - Large central Cookie Clicker-style Work/Publish control
@@ -20,6 +22,7 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 - The computer itself is the Work surface: taps begin at +1, float their value, shake the PC, and publish when development is complete
 - Rare Patrons provide recurring cash; the Patron Community Page increases their contribution
 - Phone-first single-screen layout with Work, Upgrades, and Projects tabs
+- Commercial-friendly Lucide SVG icon system under the ISC license
 - Phase-specific upgrades instead of a global Focus multiplier
 - 1,000 work for the first game, completed through roughly 100 basic work actions
 - Team hiring after game 3 and release automation after game 8
@@ -30,7 +33,7 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 - A configurable three-slot project queue
 - Versioned local saves, v1 migration, and offline progress
 - Responsive desktop and mobile interface
-- Pure economy engine covered by 47 active mechanics tests, with 11 future contracts pending
+- Pure economy engine covered by 48 active mechanics tests, with 11 future contracts pending
 
 Each solo upgrade improves the development phase it logically supports. Staff is delayed until the player has shipped three solo games so hiring feels like a meaningful studio milestone.
 
