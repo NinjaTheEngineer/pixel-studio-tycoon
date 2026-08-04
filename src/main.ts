@@ -356,13 +356,13 @@ function render(): void {
   ui.stageLabel.textContent = companyStage.name;
   ui.production.textContent = `$${getPatronIncomePerSecond(state).toFixed(2)}/s`;
   ui.projectTitle.textContent = state.currentGameName;
-  ui.projectType.textContent = `${project.name} Â· ${currentPhase.phase.name}`;
+  ui.projectType.textContent = `${project.name} / ${currentPhase.phase.name}`;
   ui.work.textContent = state.currentIdea ? `${formatNumber(state.work)} / ${formatNumber(requiredWork)} work` : "Brainstorming required";
   ui.projectProgress.setAttribute("aria-valuemax", String(requiredWork));
   ui.projectProgress.setAttribute("aria-valuenow", String(Math.floor(state.work)));
   ui.progressFill.style.width = `${progress}%`;
   ui.phaseProgressLabel.textContent = state.currentIdea
-    ? `${currentPhase.phase.name} Â· Objective ${currentObjective.index + 1}/${currentObjective.count} Â· ${Math.floor(currentPhase.progress * 100)}%`
+    ? `${currentPhase.phase.name} / Objective ${currentObjective.index + 1}/${currentObjective.count} / ${Math.floor(currentPhase.progress * 100)}%`
     : "Waiting for a project idea";
   ui.currentPhaseIcon.innerHTML = `<i data-lucide="${PHASE_ICONS[currentPhase.phase.id]}"></i>`;
   ui.phaseAction.textContent = state.currentIdea ? currentPhase.phase.action : "Brainstorm your next game";
@@ -377,7 +377,7 @@ function render(): void {
     ? "CHOOSE A PROJECT IDEA"
     : canPublish(state)
       ? "TAP COMPUTER TO PUBLISH"
-      : `TAP COMPUTER Â· +${formatNumber(getClickPower(state))} WORK`;
+      : `TAP ANYWHERE / +${formatNumber(getClickPower(state))} WORK`;
   ui.autoPublishToggle.disabled = !pipelineUnlocked;
   ui.autoPublishToggle.checked = pipelineUnlocked && state.autoPublish;
   ui.status.textContent = message;
@@ -410,7 +410,7 @@ function renderIdeas(): void {
       <span class="idea-profile">${idea.profile}</span>
       <h3>${idea.title}</h3>
       <p>${idea.pitch}</p>
-      <dl><div><dt>Potential</dt><dd>${idea.potentialMin}â€“${idea.potentialMax}</dd></div><div><dt>Scope</dt><dd>${idea.profile === "safe" ? "Compact" : idea.profile === "wild" ? "Ambitious" : "Balanced"}</dd></div><div><dt>Work</dt><dd>x${idea.workMultiplier.toFixed(1)}</dd></div></dl>
+      <dl><div><dt>Potential</dt><dd>${idea.potentialMin}-${idea.potentialMax}</dd></div><div><dt>Scope</dt><dd>${idea.profile === "safe" ? "Compact" : idea.profile === "wild" ? "Ambitious" : "Balanced"}</dd></div><div><dt>Work</dt><dd>x${idea.workMultiplier.toFixed(1)}</dd></div></dl>
       <button class="button button-small" type="button" data-idea-id="${idea.id}" ${state.currentIdea ? "disabled" : ""}>${selected ? "Selected" : "Choose idea"}</button>
     </article>`;
   }).join("");
