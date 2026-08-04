@@ -1,4 +1,5 @@
 import "./styles.css";
+import { BadgeDollarSign, BookOpen, BriefcaseBusiness, CircleDollarSign, FlaskConical, Gamepad2, HandCoins, Laptop, Megaphone, PackageCheck, Rocket, Settings, TestTubeDiagonal, Users, Wrench, createIcons } from "lucide";
 import { DEVELOPMENT_PHASES, PROJECTS, PROJECT_BY_ID, UPGRADES } from "./data";
 import { generateIdeaOptions } from "./ideas";
 import {
@@ -11,6 +12,7 @@ import {
   createInitialState,
   formatNumber,
   getClickPower,
+  getCompanyStage,
   getPatronIncomePerSecond,
   getCurrentPhase,
   getCurrentProject,
@@ -32,15 +34,16 @@ import type { GameState, ProjectId, UpgradeId } from "./types";
 const OLD_SAVE_KEY = "pixel-studio-tycoon-save-v1";
 const TUTORIAL_KEY = "pixel-studio-tycoon-tutorial-v1";
 const UPGRADE_ICONS: Record<UpgradeId, string> = {
-  research: "â–¤",
-  prototype: "â—‡",
-  workstation: "â–£",
-  playtesting: "âœ“",
-  storefront: "â–±",
-  patronSupport: "P",
-  team: "+",
-  pipeline: "â†»",
+  research: "book-open",
+  prototype: "flask-conical",
+  workstation: "laptop",
+  playtesting: "test-tube-diagonal",
+  storefront: "megaphone",
+  patronSupport: "hand-coins",
+  team: "users",
+  pipeline: "rocket",
 };
+const PHASE_ICONS: Record<string, string> = { concept: "book-open", preproduction: "flask-conical", production: "settings", polish: "test-tube-diagonal", launch: "package-check" };
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -52,6 +55,7 @@ const ui = {
   money: element("money-value"),
   fans: element("fans-value"),
   games: element("games-value"),
+  stageLabel: element("stage-label"),
   production: element("production-value"),
   projectTitle: element("current-project-title"),
   projectType: element("current-project-type"),
@@ -65,6 +69,7 @@ const ui = {
   phaseList: element("phase-list"),
   status: element("status-message"),
   saveStatus: element("save-status"),
+  studioPanel: element<HTMLElement>("work-view"),
   computerArea: element<HTMLElement>("computer-area"),
   tapPopup: element("tap-popup"),
   computerActionLabel: element("computer-action-label"),
@@ -90,7 +95,7 @@ const ui = {
 };
 
 const TUTORIAL_STEPS = [
-  { title: "Choose a project idea", copy: "Every game begins with three concepts: Safe, Promising, and Wild. Higher potential also means more work and risk." },
+  { title: "Choose a project idea", copy: "Every game begins with three concepts: Safe, Promising, and Wild. Compare their potential and visible workload before committing." },
   { title: "Tap the computer to work", copy: "The computer is your Work button. Each tap advances the current objective; the label changes when your game is ready to publish." },
   { title: "Milestones pay early", copy: "Concept, Pre-production, Production, and Polish each pay part of the contract. Patrons are rare, but each one supports you with recurring cash." },
   { title: "Build a real studio", copy: "Spend milestone money on upgrades. Use the bottom tabs to move between your computer, upgrades, and larger future projects." },
@@ -145,7 +150,10 @@ function performComputerAction(): void {
   saveAndRender();
 }
 
-ui.computerArea.addEventListener("click", performComputerAction);
+ui.studioPanel.addEventListener("click", (event) => {
+  if ((event.target as HTMLElement).closest("button, a, input")) return;
+  performComputerAction();
+});
 ui.computerArea.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
   event.preventDefault();
@@ -340,10 +348,12 @@ function render(): void {
   const pipelineUnlocked = state.upgradeLevels.pipeline > 0;
   const currentPhase = getCurrentPhase(state);
   const currentObjective = getCurrentObjective(state);
+  const companyStage = getCompanyStage(state);
 
   ui.money.textContent = `$${formatNumber(state.money)}`;
   ui.fans.textContent = formatNumber(state.fans);
-  ui.games.textContent = formatNumber(state.gamesPublished);
+  ui.games.textContent = `${companyStage.current} / ${companyStage.total}`;
+  ui.stageLabel.textContent = companyStage.name;
   ui.production.textContent = `$${getPatronIncomePerSecond(state).toFixed(2)}/s`;
   ui.projectTitle.textContent = state.currentGameName;
   ui.projectType.textContent = `${project.name} Â· ${currentPhase.phase.name}`;
@@ -354,12 +364,12 @@ function render(): void {
   ui.phaseProgressLabel.textContent = state.currentIdea
     ? `${currentPhase.phase.name} Â· Objective ${currentObjective.index + 1}/${currentObjective.count} Â· ${Math.floor(currentPhase.progress * 100)}%`
     : "Waiting for a project idea";
-  ui.currentPhaseIcon.textContent = currentPhase.phase.icon;
+  ui.currentPhaseIcon.innerHTML = `<i data-lucide="${PHASE_ICONS[currentPhase.phase.id]}"></i>`;
   ui.phaseAction.textContent = state.currentIdea ? currentPhase.phase.action : "Brainstorm your next game";
   ui.phaseDescription.textContent = state.currentIdea ? currentPhase.phase.description : "Compare three concepts and choose the milestone your bedroom studio will commit to.";
   ui.phaseList.innerHTML = DEVELOPMENT_PHASES.map((phase, index) => {
     const status = index < currentPhase.index ? "complete" : index === currentPhase.index ? "active" : "pending";
-    return `<div class="phase-step ${status}"><span aria-hidden="true">${phase.icon}</span><strong>${phase.name}</strong></div>`;
+    return `<div class="phase-step ${status}"><span aria-hidden="true"><i data-lucide="${PHASE_ICONS[phase.id]}"></i></span><strong>${phase.name}</strong></div>`;
   }).join("");
   ui.computerArea.setAttribute("aria-disabled", String(!state.currentIdea));
   ui.computerArea.tabIndex = state.currentIdea ? 0 : -1;
@@ -377,6 +387,7 @@ function render(): void {
   renderIdeas();
   renderProjects();
   renderQueue();
+  renderLucideIcons();
   if (!state.currentIdea && !ideaDialogScheduled && !ui.ideaDialog.open && !ui.tutorialDialog.open && localStorage.getItem(TUTORIAL_KEY) === "complete") {
     ideaDialogScheduled = true;
     window.setTimeout(() => {
@@ -399,7 +410,7 @@ function renderIdeas(): void {
       <span class="idea-profile">${idea.profile}</span>
       <h3>${idea.title}</h3>
       <p>${idea.pitch}</p>
-      <dl><div><dt>Potential</dt><dd>${idea.potentialMin}â€“${idea.potentialMax}</dd></div><div><dt>Risk</dt><dd>${idea.risk}%</dd></div><div><dt>Work</dt><dd>x${idea.workMultiplier.toFixed(1)}</dd></div></dl>
+      <dl><div><dt>Potential</dt><dd>${idea.potentialMin}â€“${idea.potentialMax}</dd></div><div><dt>Scope</dt><dd>${idea.profile === "safe" ? "Compact" : idea.profile === "wild" ? "Ambitious" : "Balanced"}</dd></div><div><dt>Work</dt><dd>x${idea.workMultiplier.toFixed(1)}</dd></div></dl>
       <button class="button button-small" type="button" data-idea-id="${idea.id}" ${state.currentIdea ? "disabled" : ""}>${selected ? "Selected" : "Choose idea"}</button>
     </article>`;
   }).join("");
@@ -417,7 +428,7 @@ function renderUpgrades(): void {
     const disabled = !unlocked || maxed || state.money < cost;
     return `
       <article class="upgrade-item">
-        <span class="upgrade-icon" aria-hidden="true">${UPGRADE_ICONS[upgrade.id]}</span>
+        <span class="upgrade-icon" aria-hidden="true"><i data-lucide="${UPGRADE_ICONS[upgrade.id]}"></i></span>
         <div>
           <span class="path-label">${upgrade.path} path</span>
           <h3>${upgrade.name}</h3>
@@ -448,9 +459,9 @@ function renderProjects(): void {
           <p>${item.description}</p>
         </div>
         <dl>
-          <div><dt>Work</dt><dd>${formatNumber(item.workRequired)}</dd></div>
+          <div><dt>Base work</dt><dd>${formatNumber(item.workRequired)}</dd></div>
           <div><dt>Reward</dt><dd>$${formatNumber(item.moneyReward)}</dd></div>
-          <div><dt>Fans</dt><dd>${formatNumber(getFanReward(state, item))}</dd></div>
+          <div><dt>Patrons</dt><dd>${formatNumber(getFanReward(state, item))}</dd></div>
         </dl>
         <div class="project-actions">
           <button class="button button-small" type="button" data-project-action="select" data-project-id="${item.id}" ${canSelect ? "" : "disabled"}>Select</button>
@@ -477,6 +488,13 @@ function renderQueue(): void {
       <span>${index + 1}. ${PROJECT_BY_ID[id].name}</span>
       <button class="text-button" type="button" data-remove-queue="${index}">Remove</button>
     </div>`).join("");
+}
+
+function renderLucideIcons(): void {
+  createIcons({
+    icons: { BadgeDollarSign, BookOpen, BriefcaseBusiness, CircleDollarSign, FlaskConical, Gamepad2, HandCoins, Laptop, Megaphone, PackageCheck, Rocket, Settings, TestTubeDiagonal, Users, Wrench },
+    attrs: { "stroke-width": 1.8 },
+  });
 }
 
 function renderTutorialStep(): void {
