@@ -1,5 +1,5 @@
-import { PROJECT_BY_ID, PROJECTS, UPGRADE_BY_ID } from "./data";
-import type { GameState, ProjectDefinition, ProjectId, UpgradeId } from "./types";
+import { DEVELOPMENT_PHASES, PROJECT_BY_ID, PROJECT_TITLES, PROJECTS, UPGRADE_BY_ID } from "./data";
+import type { DevelopmentPhase, GameState, ProjectDefinition, ProjectId, UpgradeId } from "./types";
 
 export const SAVE_KEY = "pixel-studio-tycoon-save-v2";
 export const MAX_OFFLINE_SECONDS = 60 * 60 * 4;
@@ -12,10 +12,11 @@ export function createInitialState(now = Date.now()): GameState {
     money: 0,
     fans: 0,
     gamesPublished: 0,
+    currentGameName: PROJECT_TITLES["tiny-adventure"][0],
     currentProjectId: "tiny-adventure",
     selectedProjectId: "tiny-adventure",
     projectQueue: [],
-    upgradeLevels: { tools: 0, team: 0, pipeline: 0 },
+    upgradeLevels: { tools: 0, marketing: 0, team: 0, pipeline: 0 },
     autoPublish: false,
     focus: 0,
     lastSavedAt: now,
@@ -46,6 +47,36 @@ export function getUpgradeCost(state: GameState, id: UpgradeId): number {
   return Math.round(definition.baseCost * Math.pow(definition.costGrowth, level));
 }
 
+export function isUpgradeUnlocked(state: GameState, id: UpgradeId): boolean {
+  return state.gamesPublished >= UPGRADE_BY_ID[id].unlockGames;
+}
+
+export function getFanReward(state: GameState, project = getCurrentProject(state)): number {
+  return Math.round(project.fanReward * Math.pow(1.5, state.upgradeLevels.marketing));
+}
+
+export function getGeneratedGameName(projectId: ProjectId, releaseNumber: number): string {
+  const titles = PROJECT_TITLES[projectId];
+  const base = titles[releaseNumber % titles.length];
+  const cycle = Math.floor(releaseNumber / titles.length);
+  return cycle === 0 ? base : `${base} ${cycle + 1}`;
+}
+
+export function getCurrentPhase(state: GameState): { phase: DevelopmentPhase; index: number; progress: number } {
+  const total = getCurrentProject(state).workRequired;
+  const ratio = Math.min(1, state.work / total);
+  let start = 0;
+  for (let index = 0; index < DEVELOPMENT_PHASES.length; index += 1) {
+    const phase = DEVELOPMENT_PHASES[index];
+    const end = start + phase.share;
+    if (ratio < end || index === DEVELOPMENT_PHASES.length - 1) {
+      return { phase, index, progress: Math.min(1, Math.max(0, (ratio - start) / phase.share)) };
+    }
+    start = end;
+  }
+  return { phase: DEVELOPMENT_PHASES[DEVELOPMENT_PHASES.length - 1], index: DEVELOPMENT_PHASES.length - 1, progress: 1 };
+}
+
 export function isProjectUnlocked(state: GameState, id: ProjectId): boolean {
   const project = PROJECT_BY_ID[id];
   return state.gamesPublished >= project.unlockGames && state.fans >= project.unlockFans;
@@ -66,10 +97,11 @@ export function publish(state: GameState): boolean {
   if (!canPublish(state)) return false;
   const project = getCurrentProject(state);
   state.money += project.moneyReward;
-  state.fans += project.fanReward;
+  state.fans += getFanReward(state, project);
   state.gamesPublished += 1;
   state.work = 0;
   startNextProject(state);
+  state.currentGameName = getGeneratedGameName(state.currentProjectId, state.gamesPublished);
   return true;
 }
 
@@ -92,6 +124,7 @@ export function selectProject(state: GameState, id: ProjectId): boolean {
   if (!isProjectUnlocked(state, id) || state.work > 0) return false;
   state.currentProjectId = id;
   state.selectedProjectId = id;
+  state.currentGameName = getGeneratedGameName(id, state.gamesPublished);
   return true;
 }
 
@@ -105,7 +138,7 @@ export function queueProject(state: GameState, id: ProjectId): boolean {
 export function buyUpgrade(state: GameState, id: UpgradeId): boolean {
   const definition = UPGRADE_BY_ID[id];
   const level = state.upgradeLevels[id];
-  if (level >= definition.maxLevel) return false;
+  if (!isUpgradeUnlocked(state, id) || level >= definition.maxLevel) return false;
   const cost = getUpgradeCost(state, id);
   if (state.money < cost) return false;
   state.money -= cost;
@@ -158,4 +191,3 @@ export function formatNumber(value: number): string {
   }
   return `${scaled.toFixed(scaled >= 100 ? 0 : scaled >= 10 ? 1 : 2)}${suffixes[index]}`;
 }
-
