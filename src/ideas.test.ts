@@ -28,7 +28,7 @@ describe("project brainstorming", () => {
     expect(chooseIdea(state, "missing")).toBe(false);
     expect(chooseIdea(state, state.ideaOptions[1].id)).toBe(true);
     tap(state);
-    expect(state.work).toBe(10);
+    expect(state.work).toBe(1);
     expect(chooseIdea(state, state.ideaOptions[0].id)).toBe(false);
   });
 
@@ -37,8 +37,8 @@ describe("project brainstorming", () => {
     const wildState = createInitialState();
     chooseIdea(safeState, safeState.ideaOptions[0].id);
     chooseIdea(wildState, wildState.ideaOptions[2].id);
-    expect(getRequiredWork(safeState)).toBe(900);
-    expect(getRequiredWork(wildState)).toBe(1200);
+    expect(getRequiredWork(safeState)).toBe(90);
+    expect(getRequiredWork(wildState)).toBe(120);
   });
 
   it("adds more production steps to the second and third milestone projects", () => {
