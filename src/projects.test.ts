@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canPublish, createInitialState, getGeneratedGameName, isProjectUnlocked, publish, selectProject } from "./engine";
+import { canPublish, createInitialState, getGeneratedGameName, getStageProjectId, isProjectUnlocked, publish, selectProject } from "./engine";
 import { chooseDefaultIdea } from "./test-helpers";
 
 describe("projects and releases", () => {
@@ -43,5 +43,14 @@ describe("projects and releases", () => {
     state.work = 0;
     expect(selectProject(state, "pocket-puzzler")).toBe(true);
     expect(state.currentProjectId).toBe("pocket-puzzler");
+  });
+
+  it("moves to a fresh project family at each company stage", () => {
+    const state = createInitialState();
+    expect(getStageProjectId(state)).toBe("tiny-adventure");
+    state.gamesPublished = 3;
+    expect(getStageProjectId(state)).toBe("pocket-puzzler");
+    state.gamesPublished = 8;
+    expect(getStageProjectId(state)).toBe("cozy-farm");
   });
 });
