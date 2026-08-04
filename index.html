@@ -20,16 +20,15 @@
 
     <section class="resource-grid" aria-label="Studio resources">
       <article class="resource-card"><i aria-hidden="true">$</i><div><span>Money</span><strong id="money-value">$0</strong></div></article>
-      <article class="resource-card"><i aria-hidden="true">â™¥</i><div><span>Fans</span><strong id="fans-value">0</strong></div></article>
+      <article class="resource-card"><i aria-hidden="true">P</i><div><span>Patrons</span><strong id="fans-value">0</strong></div></article>
       <article class="resource-card"><i aria-hidden="true">â—†</i><div><span>Games</span><strong id="games-value">0</strong></div></article>
-      <article class="resource-card"><i aria-hidden="true">â†»</i><div><span>Idle production</span><strong id="production-value">0/s</strong></div></article>
+      <article class="resource-card"><i aria-hidden="true">/s</i><div><span>Patron income</span><strong id="production-value">$0/s</strong></div></article>
     </section>
 
     <div class="game-grid">
-      <section class="studio-panel" aria-labelledby="current-project-title">
+      <section class="studio-panel active-view" id="work-view" aria-labelledby="current-project-title">
         <div class="room-decoration" aria-hidden="true">
           <span class="plant">+</span>
-          <span class="poster">SHIP<br>SMALL</span>
           <span class="lamp"></span>
         </div>
 
@@ -41,9 +40,10 @@
           <div class="phase-list" id="phase-list" aria-label="Development phases"></div>
         </div>
 
-        <div class="workstation">
+        <div class="workstation" id="computer-area" role="button" tabindex="0" aria-label="Work on current game">
+          <span class="tap-popup" id="tap-popup" aria-hidden="true">+1</span>
           <div class="monitor">
-            <span class="monitor-label">CURRENT PROJECT</span>
+            <span class="monitor-label" id="computer-action-label">TAP COMPUTER TO WORK</span>
             <strong id="current-project-title">Lantern Vale</strong>
             <span id="current-project-type">Tiny Adventure Â· Concept</span>
             <span id="work-value">0 / 25 work</span>
@@ -55,14 +55,10 @@
           <div class="progress-fill" id="progress-fill"></div>
         </div>
 
-        <div class="primary-actions">
-          <button class="button button-primary main-action" id="work-button" type="button">Work</button>
-        </div>
-
         <p class="status-message" id="status-message" aria-live="polite">Your bedroom studio is ready. Begin the concept phase.</p>
       </section>
 
-      <aside class="management-panel">
+      <aside class="management-panel" id="upgrades-view">
         <div class="section-heading">
           <div><p class="eyebrow">Studio management</p><h2>Upgrade paths</h2></div>
           <span class="save-status" id="save-status">Saved locally</span>
@@ -82,7 +78,7 @@
       </aside>
     </div>
 
-    <section class="planning-section" aria-labelledby="projects-title">
+    <section class="planning-section" id="projects-view" aria-labelledby="projects-title">
       <div class="section-heading">
         <div><p class="eyebrow">Production planning</p><h2 id="projects-title">Game projects</h2></div>
         <span id="queue-capacity">Queue 0 / 3</span>
@@ -93,6 +89,11 @@
         <div id="queue-list" class="queue-list"></div>
       </div>
     </section>
+    <nav class="phone-nav" aria-label="Game views">
+      <button class="active" type="button" data-view-target="work-view">Work</button>
+      <button type="button" data-view-target="upgrades-view">Upgrades</button>
+      <button type="button" data-view-target="projects-view">Projects</button>
+    </nav>
   </main>
 
   <dialog id="reset-dialog">
@@ -119,14 +120,10 @@
 
   <dialog id="tutorial-dialog" class="tutorial-dialog">
     <p class="eyebrow">Bedroom studio guide</p>
-    <h2>Build one meaningful game at a time</h2>
-    <div class="tutorial-grid">
-      <article><strong>1. Choose an idea</strong><p>Compare Safe, Promising, and Wild concepts. Riskier projects take more work but have greater potential.</p></article>
-      <article><strong>2. Work through phases</strong><p>Concept, Pre-production, Production, Polish & QA, and Launch each have their own progress and upgrade.</p></article>
-      <article><strong>3. Get milestone funding</strong><p>Completing phases pays part of the project budget, so you can improve the studio before release.</p></article>
-      <article><strong>4. Buy specific improvements</strong><p>Every upgrade card states exactly which phase or automation system it improves.</p></article>
-    </div>
-    <button class="button button-primary" id="tutorial-done" type="button">Start brainstorming</button>
+    <div class="tutorial-step-count" id="tutorial-step-count">1 / 4</div>
+    <h2 id="tutorial-title">Choose a project idea</h2>
+    <p id="tutorial-copy">Compare Safe, Promising, and Wild concepts before committing your bedroom studio.</p>
+    <div class="dialog-actions"><button class="button" id="tutorial-back" type="button" disabled>Back</button><button class="button button-primary" id="tutorial-next" type="button">Next</button></div>
   </dialog>
 
   <script type="module" src="/src/main.ts"></script>
