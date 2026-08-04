@@ -11,7 +11,7 @@
   <main class="game-shell">
     <header class="game-header">
       <div>
-        <p class="eyebrow">Version 0.6 - Patrons &amp; mobile UI</p>
+        <p class="eyebrow">Version 0.7 - Studio stages</p>
         <h1>Pixel Studio Tycoon</h1>
         <p class="tagline">Code games. Build a team. Automate your studio.</p>
       </div>
@@ -19,10 +19,10 @@
     </header>
 
     <section class="resource-grid" aria-label="Studio resources">
-      <article class="resource-card"><i aria-hidden="true">$</i><div><span>Money</span><strong id="money-value">$0</strong></div></article>
-      <article class="resource-card"><i aria-hidden="true">P</i><div><span>Patrons</span><strong id="fans-value">0</strong></div></article>
-      <article class="resource-card"><i aria-hidden="true">â—†</i><div><span>Games</span><strong id="games-value">0</strong></div></article>
-      <article class="resource-card"><i aria-hidden="true">/s</i><div><span>Patron income</span><strong id="production-value">$0/s</strong></div></article>
+      <article class="resource-card"><i data-lucide="circle-dollar-sign" aria-hidden="true"></i><div><span>Money</span><strong id="money-value">$0</strong></div></article>
+      <article class="resource-card"><i data-lucide="hand-coins" aria-hidden="true"></i><div><span>Patrons</span><strong id="fans-value">0</strong></div></article>
+      <article class="resource-card"><i data-lucide="gamepad-2" aria-hidden="true"></i><div><span id="stage-label">Bedroom</span><strong id="games-value">0 / 3</strong></div></article>
+      <article class="resource-card"><i data-lucide="badge-dollar-sign" aria-hidden="true"></i><div><span>Patron income</span><strong id="production-value">$0/s</strong></div></article>
     </section>
 
     <div class="game-grid">
@@ -34,7 +34,7 @@
 
         <div class="phase-panel">
           <div class="phase-heading"><span>Current development phase</span><strong id="phase-progress-label">Concept Â· 0%</strong></div>
-          <div class="current-phase-icon" id="current-phase-icon" aria-hidden="true">âœ¦</div>
+          <div class="current-phase-icon" id="current-phase-icon" aria-hidden="true"></div>
           <h2 id="phase-action">Researching the game concept</h2>
           <p id="phase-description">You are researching references, defining the audience, and writing the core game idea.</p>
           <div class="phase-list" id="phase-list" aria-label="Development phases"></div>
@@ -90,9 +90,9 @@
       </div>
     </section>
     <nav class="phone-nav" aria-label="Game views">
-      <button class="active" type="button" data-view-target="work-view">Work</button>
-      <button type="button" data-view-target="upgrades-view">Upgrades</button>
-      <button type="button" data-view-target="projects-view">Projects</button>
+      <button class="active" type="button" data-view-target="work-view"><i data-lucide="laptop"></i><span>Work</span></button>
+      <button type="button" data-view-target="upgrades-view"><i data-lucide="wrench"></i><span>Upgrades</span></button>
+      <button type="button" data-view-target="projects-view"><i data-lucide="briefcase-business"></i><span>Projects</span></button>
     </nav>
   </main>
 
@@ -113,7 +113,7 @@
         <div><p class="eyebrow">Studio brainstorm</p><h2>Choose your next milestone</h2></div>
         <span id="project-complexity">1 objective per phase</span>
       </div>
-      <p>Safe is reliable, Promising is balanced, and Wild takes longer for a chance at a much higher ceiling.</p>
+      <p>Safe is compact, Promising is balanced, and Wild takes longer for a higher potential payoff. Every option shows its workload before you commit.</p>
       <div class="idea-grid" id="idea-list"></div>
     </div>
   </dialog>
