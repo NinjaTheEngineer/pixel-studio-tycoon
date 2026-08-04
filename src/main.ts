@@ -58,6 +58,9 @@ const ui = {
 let state = loadState();
 let message = "Start with a focused work session.";
 let lastFrame = performance.now();
+let upgradeRenderKey = "";
+let projectRenderKey = "";
+let queueRenderKey = "";
 
 const elapsedOffline = Math.max(0, Math.floor((Date.now() - state.lastSavedAt) / 1000));
 if (elapsedOffline > 2) {
@@ -150,13 +153,41 @@ function frame(now: number): void {
 function loadState(): GameState {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY) ?? "null") as Partial<GameState> | null;
-    if (saved?.version === 2) return { ...createInitialState(), ...saved } as GameState;
+    if (saved?.version === 2) return sanitizeState({ ...createInitialState(), ...saved } as GameState);
     const old = JSON.parse(localStorage.getItem(OLD_SAVE_KEY) ?? "null") as Record<string, unknown> | null;
     if (old?.version === 1) return migrateOldState(old);
   } catch {
     // Corrupt saves fall back to a fresh studio.
   }
   return createInitialState();
+}
+
+function sanitizeState(candidate: GameState): GameState {
+  const clean = createInitialState();
+  clean.work = Math.max(0, numberValue(candidate.work));
+  clean.money = Math.max(0, numberValue(candidate.money));
+  clean.fans = Math.max(0, numberValue(candidate.fans));
+  clean.gamesPublished = Math.max(0, Math.floor(numberValue(candidate.gamesPublished)));
+  clean.upgradeLevels = {
+    tools: clampLevel(candidate.upgradeLevels?.tools, "tools"),
+    team: clampLevel(candidate.upgradeLevels?.team, "team"),
+    pipeline: clampLevel(candidate.upgradeLevels?.pipeline, "pipeline"),
+  };
+  clean.currentProjectId = PROJECT_BY_ID[candidate.currentProjectId] ? candidate.currentProjectId : "tiny-adventure";
+  clean.selectedProjectId = PROJECT_BY_ID[candidate.selectedProjectId] ? candidate.selectedProjectId : clean.currentProjectId;
+  clean.projectQueue = Array.isArray(candidate.projectQueue)
+    ? candidate.projectQueue.filter((id): id is ProjectId => Boolean(PROJECT_BY_ID[id])).slice(0, 3)
+    : [];
+  clean.autoPublish = Boolean(candidate.autoPublish) && clean.upgradeLevels.pipeline > 0;
+  clean.focus = Math.max(0, Math.min(100, numberValue(candidate.focus)));
+  clean.lastSavedAt = numberValue(candidate.lastSavedAt) || Date.now();
+  clean.work = Math.min(clean.work, getCurrentProject(clean).workRequired);
+  return clean;
+}
+
+function clampLevel(value: unknown, id: UpgradeId): number {
+  const maximum = UPGRADES.find((upgrade) => upgrade.id === id)?.maxLevel ?? 0;
+  return Math.max(0, Math.min(maximum, Math.floor(numberValue(value))));
 }
 
 function migrateOldState(old: Record<string, unknown>): GameState {
@@ -220,6 +251,9 @@ function render(): void {
 }
 
 function renderUpgrades(): void {
+  const nextKey = `${state.money}|${state.upgradeLevels.tools}|${state.upgradeLevels.team}|${state.upgradeLevels.pipeline}`;
+  if (nextKey === upgradeRenderKey) return;
+  upgradeRenderKey = nextKey;
   ui.upgradeList.innerHTML = UPGRADES.map((upgrade) => {
     const level = state.upgradeLevels[upgrade.id];
     const maxed = level >= upgrade.maxLevel;
@@ -241,6 +275,9 @@ function renderUpgrades(): void {
 }
 
 function renderProjects(): void {
+  const nextKey = `${state.gamesPublished}|${state.fans}|${state.currentProjectId}|${state.work === 0}|${state.upgradeLevels.pipeline}|${state.projectQueue.length}`;
+  if (nextKey === projectRenderKey) return;
+  projectRenderKey = nextKey;
   ui.projectList.innerHTML = PROJECTS.map((item) => {
     const unlocked = isProjectUnlocked(state, item.id);
     const current = state.currentProjectId === item.id;
@@ -267,6 +304,9 @@ function renderProjects(): void {
 }
 
 function renderQueue(): void {
+  const nextKey = `${state.upgradeLevels.pipeline}|${state.selectedProjectId}|${state.projectQueue.join(",")}`;
+  if (nextKey === queueRenderKey) return;
+  queueRenderKey = nextKey;
   if (state.upgradeLevels.pipeline < 1) {
     ui.queueList.innerHTML = '<p class="empty-state">Buy the Release Pipeline to queue and repeat projects automatically.</p>';
     return;
