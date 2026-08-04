@@ -16,13 +16,13 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 - 1,000 work for the first game, completed through roughly 100 basic work actions
 - Team hiring after game 3 and release automation after game 8
 - Three project types with different work and reward profiles
-- Active coding taps that build Focus and multiply all production
+- Manual Work advances the current phase; phase upgrades improve only the relevant activity
 - Design Reference Library, Prototype Toolkit, Home Workstation, Playtest Circle, Store Page Kit, Development Team, and Release Pipeline upgrades
 - Fully automatic publishing after the pipeline is unlocked
 - A configurable three-slot project queue
 - Versioned local saves, v1 migration, and offline progress
 - Responsive desktop and mobile interface
-- Pure economy engine covered by automated tests
+- Pure economy engine covered by 37 active mechanics tests, with 12 explicit v0.5 contracts pending
 
 Each solo upgrade improves the development phase it logically supports. Staff is delayed until the player has shipped three solo games so hiring feels like a meaningful studio milestone.
 
