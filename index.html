@@ -19,10 +19,10 @@
     </header>
 
     <section class="resource-grid" aria-label="Studio resources">
-      <article class="resource-card"><span>Money</span><strong id="money-value">$0</strong></article>
-      <article class="resource-card"><span>Fans</span><strong id="fans-value">0</strong></article>
-      <article class="resource-card"><span>Games</span><strong id="games-value">0</strong></article>
-      <article class="resource-card"><span>Idle production</span><strong id="production-value">0/s</strong></article>
+      <article class="resource-card"><i aria-hidden="true">$</i><div><span>Money</span><strong id="money-value">$0</strong></div></article>
+      <article class="resource-card"><i aria-hidden="true">â™¥</i><div><span>Fans</span><strong id="fans-value">0</strong></div></article>
+      <article class="resource-card"><i aria-hidden="true">â—†</i><div><span>Games</span><strong id="games-value">0</strong></div></article>
+      <article class="resource-card"><i aria-hidden="true">â†»</i><div><span>Idle production</span><strong id="production-value">0/s</strong></div></article>
     </section>
 
     <div class="game-grid">
@@ -35,6 +35,7 @@
 
         <div class="phase-panel">
           <div class="phase-heading"><span>Current development phase</span><strong id="phase-progress-label">Concept Â· 0%</strong></div>
+          <div class="current-phase-icon" id="current-phase-icon" aria-hidden="true">âœ¦</div>
           <h2 id="phase-action">Researching the game concept</h2>
           <p id="phase-description">You are researching references, defining the audience, and writing the core game idea.</p>
           <div class="phase-list" id="phase-list" aria-label="Development phases"></div>
