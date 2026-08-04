@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buyUpgrade, createInitialState, getClickPower, getCurrentPhase, tap } from "./engine";
+import { chooseDefaultIdea } from "./test-helpers";
 
 describe("development phases", () => {
   it.each([
@@ -38,6 +39,7 @@ describe("development phases", () => {
 
   it("never lets manual work overflow beyond the project requirement", () => {
     const state = createInitialState();
+    chooseDefaultIdea(state);
     state.work = 995;
     tap(state);
     expect(state.work).toBe(1000);
