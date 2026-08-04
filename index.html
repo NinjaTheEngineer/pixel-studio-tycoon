@@ -11,7 +11,7 @@
   <main class="game-shell">
     <header class="game-header">
       <div>
-        <p class="eyebrow">Version 0.3 - From concept to launch</p>
+        <p class="eyebrow">Version 0.4 - Bedroom developer</p>
         <h1>Pixel Studio Tycoon</h1>
         <p class="tagline">Code games. Build a team. Automate your studio.</p>
       </div>
@@ -33,6 +33,13 @@
           <span class="lamp"></span>
         </div>
 
+        <div class="phase-panel">
+          <div class="phase-heading"><span>Current development phase</span><strong id="phase-progress-label">Concept Â· 0%</strong></div>
+          <h2 id="phase-action">Researching the game concept</h2>
+          <p id="phase-description">You are researching references, defining the audience, and writing the core game idea.</p>
+          <div class="phase-list" id="phase-list" aria-label="Development phases"></div>
+        </div>
+
         <div class="workstation">
           <div class="monitor">
             <span class="monitor-label">CURRENT PROJECT</span>
@@ -47,27 +54,11 @@
           <div class="progress-fill" id="progress-fill"></div>
         </div>
 
-        <div class="phase-panel">
-          <div class="phase-heading"><span>Development roadmap</span><strong id="phase-progress-label">Concept Â· 0%</strong></div>
-          <div class="phase-list" id="phase-list" aria-label="Development phases"></div>
-        </div>
-
-        <div class="focus-row">
-          <div>
-            <span>Studio focus</span>
-            <strong id="focus-multiplier">x1.00</strong>
-          </div>
-          <div class="focus-track" role="progressbar" aria-label="Studio focus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="focus-progress">
-            <div class="focus-fill" id="focus-fill"></div>
-          </div>
-        </div>
-
         <div class="primary-actions">
-          <button class="button button-primary" id="work-button" type="button">Do focused work +1</button>
-          <button class="button" id="publish-button" type="button" disabled>Publish game</button>
+          <button class="button button-primary main-action" id="work-button" type="button">Work</button>
         </div>
 
-        <p class="status-message" id="status-message" aria-live="polite">Start with a focused work session.</p>
+        <p class="status-message" id="status-message" aria-live="polite">Your bedroom studio is ready. Begin the concept phase.</p>
       </section>
 
       <aside class="management-panel">
