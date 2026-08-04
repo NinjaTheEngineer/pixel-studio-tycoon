@@ -1,9 +1,8 @@
 import { describe, it } from "vitest";
 
 describe("v0.5 project brief contracts", () => {
-  it.todo("applies genre or audience fit to work, risk, and release demand");
-  it.todo("applies safe, balanced, and ambitious scope tradeoffs");
-  it.todo("applies quality, speed, and audience priorities without a dominant choice");
+  it.todo("applies selected genre or audience fit to release demand");
+  it.todo("allows later research upgrades to improve brainstorming accuracy");
 });
 
 describe("v0.5 phase decision contracts", () => {
