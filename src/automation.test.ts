@@ -21,7 +21,7 @@ describe("automation and queues", () => {
     state.autoPublish = true;
     queueProject(state, "pocket-puzzler");
     queueProject(state, "cozy-farm");
-    applyProduction(state, 1400);
+    applyProduction(state, 140);
     expect(state.currentProjectId).toBe("pocket-puzzler");
     expect(state.projectQueue).toEqual(["cozy-farm"]);
   });
@@ -30,16 +30,16 @@ describe("automation and queues", () => {
     const state = createInitialState();
     state.upgradeLevels.pipeline = 1;
     state.autoPublish = true;
-    expect(applyProduction(state, 2500)).toBe(2);
-    expect(state.work).toBe(300);
+    expect(applyProduction(state, 250)).toBe(2);
+    expect(state.work).toBe(30);
     expect(state.gamesPublished).toBe(2);
   });
 
   it("stops at a completed project when auto-publish is disabled", () => {
     const state = createInitialState();
     chooseDefaultIdea(state);
-    expect(applyProduction(state, 2500)).toBe(0);
-    expect(state.work).toBe(1000);
+    expect(applyProduction(state, 250)).toBe(0);
+    expect(state.work).toBe(100);
     expect(state.gamesPublished).toBe(0);
   });
 
