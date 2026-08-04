@@ -1,4 +1,5 @@
 import { DEVELOPMENT_PHASES, PROJECT_BY_ID, PROJECT_TITLES, PROJECTS, UPGRADE_BY_ID, UPGRADES } from "./data";
+import { generateIdeaOptions } from "./ideas";
 import type { DevelopmentPhase, GameState, ProjectDefinition, ProjectId, UpgradeId } from "./types";
 
 export const SAVE_KEY = "pixel-studio-tycoon-save-v2";
@@ -11,7 +12,9 @@ export function createInitialState(now = Date.now()): GameState {
     money: 0,
     fans: 0,
     gamesPublished: 0,
-    currentGameName: PROJECT_TITLES["tiny-adventure"][0],
+    currentGameName: "Choose your first project",
+    currentIdea: null,
+    ideaOptions: generateIdeaOptions(0),
     currentProjectId: "tiny-adventure",
     selectedProjectId: "tiny-adventure",
     projectQueue: [],
@@ -24,6 +27,31 @@ export function createInitialState(now = Date.now()): GameState {
 
 export function getCurrentProject(state: GameState): ProjectDefinition {
   return PROJECT_BY_ID[state.currentProjectId];
+}
+
+export function getRequiredWork(state: GameState): number {
+  const ideaMultiplier = state.currentIdea?.workMultiplier ?? 1;
+  const milestoneMultiplier = 1 + Math.min(2, state.gamesPublished) * 0.2;
+  return Math.round(getCurrentProject(state).workRequired * ideaMultiplier * milestoneMultiplier);
+}
+
+export function getProjectStepCount(state: GameState): number {
+  return Math.min(3, state.gamesPublished + 1);
+}
+
+export function getCurrentObjective(state: GameState): { index: number; count: number } {
+  const count = getProjectStepCount(state);
+  const phaseProgress = getCurrentPhase(state).progress;
+  return { index: Math.min(count - 1, Math.floor(phaseProgress * count)), count };
+}
+
+export function chooseIdea(state: GameState, ideaId: string): boolean {
+  if (state.work > 0 || state.currentIdea) return false;
+  const idea = state.ideaOptions.find((option) => option.id === ideaId);
+  if (!idea) return false;
+  state.currentIdea = idea;
+  state.currentGameName = idea.title;
+  return true;
 }
 
 export function getClickPower(state: GameState): number {
@@ -61,7 +89,7 @@ export function getGeneratedGameName(projectId: ProjectId, releaseNumber: number
 }
 
 export function getCurrentPhase(state: GameState): { phase: DevelopmentPhase; index: number; progress: number } {
-  const total = getCurrentProject(state).workRequired;
+  const total = getRequiredWork(state);
   const ratio = Math.min(1, state.work / total);
   let start = 0;
   for (let index = 0; index < DEVELOPMENT_PHASES.length; index += 1) {
@@ -81,13 +109,13 @@ export function isProjectUnlocked(state: GameState, id: ProjectId): boolean {
 }
 
 export function tap(state: GameState): void {
-  const project = getCurrentProject(state);
+  if (!state.currentIdea) return;
   const directWork = getClickPower(state);
-  state.work = Math.min(project.workRequired, state.work + directWork);
+  state.work = Math.min(getRequiredWork(state), state.work + directWork);
 }
 
 export function canPublish(state: GameState): boolean {
-  return state.work >= getCurrentProject(state).workRequired;
+  return Boolean(state.currentIdea) && state.work >= getRequiredWork(state);
 }
 
 export function publish(state: GameState): boolean {
@@ -98,7 +126,9 @@ export function publish(state: GameState): boolean {
   state.gamesPublished += 1;
   state.work = 0;
   startNextProject(state);
-  state.currentGameName = getGeneratedGameName(state.currentProjectId, state.gamesPublished);
+  state.currentIdea = null;
+  state.ideaOptions = generateIdeaOptions(state.gamesPublished);
+  state.currentGameName = "Choose your next project";
   return true;
 }
 
@@ -118,10 +148,10 @@ export function startNextProject(state: GameState): void {
 }
 
 export function selectProject(state: GameState, id: ProjectId): boolean {
-  if (!isProjectUnlocked(state, id) || state.work > 0) return false;
+  if (!isProjectUnlocked(state, id) || state.work > 0 || state.currentIdea) return false;
   state.currentProjectId = id;
   state.selectedProjectId = id;
-  state.currentGameName = getGeneratedGameName(id, state.gamesPublished);
+  state.currentGameName = "Choose your next project";
   return true;
 }
 
@@ -159,8 +189,12 @@ export function applyProduction(state: GameState, amount: number): number {
   let safety = 0;
   while (remaining > 0 && safety < 10_000) {
     safety += 1;
-    const project = getCurrentProject(state);
-    const needed = project.workRequired - state.work;
+    if (!state.currentIdea) {
+      if (!state.autoPublish || state.upgradeLevels.pipeline < 1) break;
+      const automaticIdea = state.ideaOptions.find((idea) => idea.profile === "promising") ?? state.ideaOptions[0];
+      if (!automaticIdea || !chooseIdea(state, automaticIdea.id)) break;
+    }
+    const needed = getRequiredWork(state) - state.work;
     const applied = Math.min(needed, remaining);
     state.work += applied;
     remaining -= applied;
