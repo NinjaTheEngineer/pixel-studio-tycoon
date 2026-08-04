@@ -24,6 +24,15 @@ import {
 import type { GameState, ProjectId, UpgradeId } from "./types";
 
 const OLD_SAVE_KEY = "pixel-studio-tycoon-save-v1";
+const UPGRADE_ICONS: Record<UpgradeId, string> = {
+  research: "â–¤",
+  prototype: "â—‡",
+  workstation: "â–£",
+  playtesting: "âœ“",
+  storefront: "â–±",
+  team: "+",
+  pipeline: "â†»",
+};
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -42,6 +51,7 @@ const ui = {
   projectProgress: element("project-progress"),
   progressFill: element("progress-fill"),
   phaseProgressLabel: element("phase-progress-label"),
+  currentPhaseIcon: element("current-phase-icon"),
   phaseAction: element("phase-action"),
   phaseDescription: element("phase-description"),
   phaseList: element("phase-list"),
@@ -248,11 +258,12 @@ function render(): void {
   ui.projectProgress.setAttribute("aria-valuenow", String(Math.floor(state.work)));
   ui.progressFill.style.width = `${progress}%`;
   ui.phaseProgressLabel.textContent = `${currentPhase.phase.name} Â· ${Math.floor(currentPhase.progress * 100)}%`;
+  ui.currentPhaseIcon.textContent = currentPhase.phase.icon;
   ui.phaseAction.textContent = currentPhase.phase.action;
   ui.phaseDescription.textContent = currentPhase.phase.description;
   ui.phaseList.innerHTML = DEVELOPMENT_PHASES.map((phase, index) => {
     const status = index < currentPhase.index ? "complete" : index === currentPhase.index ? "active" : "pending";
-    return `<div class="phase-step ${status}"><span>${index + 1}</span><strong>${phase.name}</strong></div>`;
+    return `<div class="phase-step ${status}"><span aria-hidden="true">${phase.icon}</span><strong>${phase.name}</strong></div>`;
   }).join("");
   ui.workButton.textContent = canPublish(state) ? "Publish" : "Work";
   ui.autoPublishToggle.disabled = !pipelineUnlocked;
@@ -277,6 +288,7 @@ function renderUpgrades(): void {
     const disabled = !unlocked || maxed || state.money < cost;
     return `
       <article class="upgrade-item">
+        <span class="upgrade-icon" aria-hidden="true">${UPGRADE_ICONS[upgrade.id]}</span>
         <div>
           <span class="path-label">${upgrade.path} path</span>
           <h3>${upgrade.name}</h3>
