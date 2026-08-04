@@ -1,5 +1,17 @@
 export type ProjectId = "tiny-adventure" | "pocket-puzzler" | "cozy-farm";
 export type UpgradeId = "research" | "prototype" | "workstation" | "playtesting" | "storefront" | "team" | "pipeline";
+export type IdeaProfile = "safe" | "promising" | "wild";
+
+export interface ProjectIdea {
+  id: string;
+  profile: IdeaProfile;
+  title: string;
+  pitch: string;
+  potentialMin: number;
+  potentialMax: number;
+  risk: number;
+  workMultiplier: number;
+}
 
 export interface DevelopmentPhase {
   id: string;
@@ -40,6 +52,8 @@ export interface GameState {
   money: number;
   fans: number;
   gamesPublished: number;
+  currentIdea: ProjectIdea | null;
+  ideaOptions: ProjectIdea[];
   currentGameName: string;
   currentProjectId: ProjectId;
   selectedProjectId: ProjectId;
