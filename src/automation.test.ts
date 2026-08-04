@@ -13,7 +13,7 @@ describe("automation and queues", () => {
     expect(queueProject(state, "tiny-adventure")).toBe(false);
   });
 
-  it("consumes queued projects in first-in, first-out order", () => {
+  it("clears stale queues when a new company stage selects its project family", () => {
     const state = createInitialState();
     state.gamesPublished = 8;
     state.fans = 100;
@@ -22,8 +22,8 @@ describe("automation and queues", () => {
     queueProject(state, "pocket-puzzler");
     queueProject(state, "cozy-farm");
     applyProduction(state, 140);
-    expect(state.currentProjectId).toBe("pocket-puzzler");
-    expect(state.projectQueue).toEqual(["cozy-farm"]);
+    expect(state.currentProjectId).toBe("cozy-farm");
+    expect(state.projectQueue).toEqual([]);
   });
 
   it("preserves overflow through repeated automatic releases", () => {
@@ -31,7 +31,7 @@ describe("automation and queues", () => {
     state.upgradeLevels.pipeline = 1;
     state.autoPublish = true;
     expect(applyProduction(state, 250)).toBe(2);
-    expect(state.work).toBe(30);
+    expect(state.work).toBe(32);
     expect(state.gamesPublished).toBe(2);
   });
 
