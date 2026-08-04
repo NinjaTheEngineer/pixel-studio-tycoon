@@ -19,7 +19,7 @@ export function createInitialState(now = Date.now()): GameState {
     currentProjectId: "tiny-adventure",
     selectedProjectId: "tiny-adventure",
     projectQueue: [],
-    upgradeLevels: { research: 0, prototype: 0, workstation: 0, playtesting: 0, storefront: 0, team: 0, pipeline: 0 },
+    upgradeLevels: { research: 0, prototype: 0, workstation: 0, playtesting: 0, storefront: 0, patronSupport: 0, team: 0, pipeline: 0 },
     autoPublish: false,
     focus: 0,
     lastSavedAt: now,
@@ -59,13 +59,17 @@ export function getClickPower(state: GameState): number {
   const phase = getCurrentPhase(state).phase;
   const upgrade = UPGRADES.find((item) => item.phaseId === phase.id);
   const level = upgrade ? state.upgradeLevels[upgrade.id] : 0;
-  return 10 * (1 + level * (upgrade?.efficiencyPerLevel ?? 0));
+  return 1 * (1 + level * (upgrade?.efficiencyPerLevel ?? 0));
 }
 
 export function getBaseProduction(state: GameState): number {
   const level = state.upgradeLevels.team;
   if (level === 0) return 0;
   return level * Math.pow(1.32, Math.max(0, level - 1));
+}
+
+export function getPatronIncomePerSecond(state: GameState): number {
+  return state.fans * 0.05 * (1 + state.upgradeLevels.patronSupport * 0.5);
 }
 
 export function getUpgradeCost(state: GameState, id: UpgradeId): number {
@@ -200,12 +204,15 @@ export function buyUpgrade(state: GameState, id: UpgradeId): boolean {
 }
 
 export function advanceRealtime(state: GameState, seconds: number): number {
+  state.money += getPatronIncomePerSecond(state) * Math.max(0, seconds);
   const production = getBaseProduction(state) * seconds;
   return applyProduction(state, production);
 }
 
 export function advanceOffline(state: GameState, seconds: number): number {
-  return applyProduction(state, getBaseProduction(state) * Math.min(seconds, MAX_OFFLINE_SECONDS));
+  const cappedSeconds = Math.min(Math.max(0, seconds), MAX_OFFLINE_SECONDS);
+  state.money += getPatronIncomePerSecond(state) * cappedSeconds;
+  return applyProduction(state, getBaseProduction(state) * cappedSeconds);
 }
 
 export function applyProduction(state: GameState, amount: number): number {
