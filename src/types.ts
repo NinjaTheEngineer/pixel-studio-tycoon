@@ -1,5 +1,12 @@
 export type ProjectId = "tiny-adventure" | "pocket-puzzler" | "cozy-farm";
-export type UpgradeId = "tools" | "team" | "pipeline";
+export type UpgradeId = "tools" | "marketing" | "team" | "pipeline";
+
+export interface DevelopmentPhase {
+  id: string;
+  name: string;
+  description: string;
+  share: number;
+}
 
 export interface ProjectDefinition {
   id: ProjectId;
@@ -20,6 +27,7 @@ export interface UpgradeDefinition {
   maxLevel: number;
   baseCost: number;
   costGrowth: number;
+  unlockGames: number;
 }
 
 export interface GameState {
@@ -28,6 +36,7 @@ export interface GameState {
   money: number;
   fans: number;
   gamesPublished: number;
+  currentGameName: string;
   currentProjectId: ProjectId;
   selectedProjectId: ProjectId;
   projectQueue: ProjectId[];
@@ -36,4 +45,3 @@ export interface GameState {
   focus: number;
   lastSavedAt: number;
 }
-
