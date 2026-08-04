@@ -8,6 +8,9 @@
     "build": "tsc && vite build",
     "test": "vitest run"
   },
+  "dependencies": {
+    "lucide": "^1.28.0"
+  },
   "devDependencies": {
     "typescript": "^5.9.2",
     "vite": "^7.1.1",
