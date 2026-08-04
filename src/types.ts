@@ -1,5 +1,5 @@
 export type ProjectId = "tiny-adventure" | "pocket-puzzler" | "cozy-farm";
-export type UpgradeId = "research" | "prototype" | "workstation" | "playtesting" | "storefront" | "team" | "pipeline";
+export type UpgradeId = "research" | "prototype" | "workstation" | "playtesting" | "storefront" | "patronSupport" | "team" | "pipeline";
 export type IdeaProfile = "safe" | "promising" | "wild";
 
 export interface ProjectIdea {
