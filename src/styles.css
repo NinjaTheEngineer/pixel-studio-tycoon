@@ -165,3 +165,62 @@ dialog p { color: var(--muted); line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* Phone-first game shell: one focused view stays visible at a time. */
+body { min-height: 100dvh; overflow: hidden; }
+.game-shell { width: min(480px, 100%); height: 100dvh; padding: 10px 10px 74px; overflow: hidden; }
+.game-header { min-height: 45px; }
+.game-header h1 { margin: 0; font-size: 1.55rem; line-height: 1; }
+.game-header .eyebrow { margin-bottom: 3px; font-size: .6rem; }
+.tagline { display: none; }
+.header-actions { gap: 2px; }
+.resource-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 8px 0; }
+.resource-card { min-width: 0; padding: 7px; border-radius: 10px; gap: 6px; }
+.resource-card i { display: none; }
+.resource-card span { margin-bottom: 2px; font-size: .55rem; white-space: nowrap; }
+.resource-card strong { display: block; overflow: hidden; font-size: .9rem; text-overflow: ellipsis; }
+.game-grid { display: block; }
+.studio-panel, .management-panel, .planning-section { display: none; height: calc(100dvh - 145px); margin: 0; border-radius: 15px; overflow-y: auto; box-shadow: none; }
+.studio-panel.active-view { display: grid; }
+.management-panel.active-view, .planning-section.active-view { display: block; }
+.studio-panel { min-height: 0; padding: 12px; grid-template-rows: auto auto auto auto; align-content: start; }
+.management-panel { position: static; max-height: none; padding: 14px; }
+.planning-section { padding: 14px; }
+.room-decoration { display: none; }
+.workstation { width: min(300px, 86%); margin: 8px auto 2px; opacity: 1; transform: scale(.82); cursor: pointer; touch-action: manipulation; user-select: none; }
+.workstation:hover .monitor { border-color: var(--primary); }
+.workstation:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 14px; }
+.workstation[aria-disabled="true"] { opacity: .45; cursor: default; }
+.tap-popup { position: absolute; z-index: 5; top: 8%; left: 50%; color: var(--accent); font-size: 1.4rem; font-weight: 900; opacity: 0; pointer-events: none; text-shadow: 0 3px 12px #000; }
+.tap-popup.show { animation: tap-float .62s ease-out; }
+.workstation.shake .monitor { animation: computer-shake .2s linear; }
+@keyframes tap-float { 0% { opacity: 1; transform: translate(-50%, 8px) scale(.8); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -54px) scale(1.15); } }
+@keyframes computer-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
+.phase-panel { min-height: 0; margin: 6px 0 0; padding: 10px; grid-template-columns: 40px 1fr; grid-template-rows: auto 28px 40px auto; column-gap: 10px; }
+.phase-heading { margin-bottom: 5px; font-size: .66rem; }
+.current-phase-icon { width: 40px; height: 40px; border-radius: 10px; font-size: 1.1rem; }
+.phase-panel h2 { font-size: .95rem; }
+.phase-panel > p { min-height: 40px; font-size: .73rem; line-height: 1.3; }
+.phase-list { gap: 3px; margin-top: 6px; }
+.phase-step { padding: 5px 2px; }
+.phase-step strong { display: none; }
+.status-message { min-height: 34px; margin: 7px 0 0; font-size: .74rem; }
+.upgrade-list { gap: 7px; margin-top: 12px; }
+.upgrade-item { padding: 9px; grid-template-columns: 32px 1fr auto; gap: 8px; }
+.upgrade-icon { width: 32px; height: 32px; }
+.upgrade-item h3 { font-size: .85rem; }
+.upgrade-item p { margin-bottom: 4px; font-size: .72rem; line-height: 1.3; }
+.upgrade-item .button { width: auto; min-height: 36px; padding: 6px 8px; font-size: .7rem; }
+.automation-panel { margin-top: 12px; padding-top: 10px; }
+.project-grid, .idea-grid { grid-template-columns: 1fr; gap: 7px; margin-top: 10px; }
+.project-card, .idea-card { padding: 11px; }
+.phone-nav { position: fixed; z-index: 20; left: 50%; bottom: 8px; width: min(460px, calc(100% - 20px)); height: 56px; padding: 5px; border: 1px solid var(--border); border-radius: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: rgba(23, 26, 44, .97); box-shadow: var(--shadow); transform: translateX(-50%); }
+.phone-nav .button { min-height: 44px; padding: 6px; border-color: transparent; background: transparent; font-size: .75rem; }
+.phone-nav .button.active { border-color: var(--primary); color: var(--accent); background: var(--surface-soft); }
+.tutorial-step-count { margin-bottom: 12px; color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+
+@media (max-width: 380px) {
+  .resource-card { padding: 6px 4px; }
+  .studio-panel, .management-panel, .planning-section { height: calc(100dvh - 138px); }
+  .workstation { transform: scale(.72); margin: -5px auto -12px; }
+}
