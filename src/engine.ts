@@ -32,8 +32,21 @@ export function getCurrentProject(state: GameState): ProjectDefinition {
 
 export function getRequiredWork(state: GameState): number {
   const ideaMultiplier = state.currentIdea?.workMultiplier ?? 1;
-  const milestoneMultiplier = 1 + Math.min(2, state.gamesPublished) * 0.2;
-  return Math.round(getCurrentProject(state).workRequired * ideaMultiplier * milestoneMultiplier);
+  const stageStart = state.gamesPublished < 3 ? 0 : state.gamesPublished < 8 ? 3 : 8;
+  const projectGrowth = Math.pow(1.18, state.gamesPublished - stageStart);
+  return Math.round(getCurrentProject(state).workRequired * ideaMultiplier * projectGrowth);
+}
+
+export function getCompanyStage(state: GameState): { name: string; current: number; total: number } {
+  if (state.gamesPublished < 3) return { name: "Bedroom developer", current: state.gamesPublished, total: 3 };
+  if (state.gamesPublished < 8) return { name: "Small indie studio", current: state.gamesPublished - 3, total: 5 };
+  return { name: "Established studio", current: state.gamesPublished - 8, total: 8 };
+}
+
+export function getStageProjectId(state: GameState): ProjectId {
+  if (state.gamesPublished < 3) return "tiny-adventure";
+  if (state.gamesPublished < 8) return "pocket-puzzler";
+  return "cozy-farm";
 }
 
 export function getProjectStepCount(state: GameState): number {
@@ -162,6 +175,13 @@ export function publish(state: GameState): boolean {
 }
 
 export function startNextProject(state: GameState): void {
+  const stageProject = getStageProjectId(state);
+  if (state.currentProjectId !== stageProject && isProjectUnlocked(state, stageProject)) {
+    state.currentProjectId = stageProject;
+    state.selectedProjectId = stageProject;
+    state.projectQueue = [];
+    return;
+  }
   const queued = state.projectQueue.shift();
   if (queued && isProjectUnlocked(state, queued)) {
     state.currentProjectId = queued;
@@ -177,7 +197,7 @@ export function startNextProject(state: GameState): void {
 }
 
 export function selectProject(state: GameState, id: ProjectId): boolean {
-  if (!isProjectUnlocked(state, id) || state.work > 0 || state.currentIdea) return false;
+  if (id !== getStageProjectId(state) || !isProjectUnlocked(state, id) || state.work > 0 || state.currentIdea) return false;
   state.currentProjectId = id;
   state.selectedProjectId = id;
   state.currentGameName = "Choose your next project";
