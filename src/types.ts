@@ -6,6 +6,7 @@ export interface DevelopmentPhase {
   name: string;
   description: string;
   action: string;
+  icon: string;
   share: number;
 }
 
