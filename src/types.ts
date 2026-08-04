@@ -54,6 +54,7 @@ export interface GameState {
   gamesPublished: number;
   currentIdea: ProjectIdea | null;
   ideaOptions: ProjectIdea[];
+  milestonePaymentsClaimed: number[];
   currentGameName: string;
   currentProjectId: ProjectId;
   selectedProjectId: ProjectId;
