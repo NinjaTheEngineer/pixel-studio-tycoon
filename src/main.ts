@@ -14,6 +14,7 @@ import {
   getCurrentPhase,
   getCurrentProject,
   getFanReward,
+  getReleasePayment,
   getCurrentObjective,
   getProjectStepCount,
   getRequiredWork,
@@ -28,6 +29,7 @@ import {
 import type { GameState, ProjectId, UpgradeId } from "./types";
 
 const OLD_SAVE_KEY = "pixel-studio-tycoon-save-v1";
+const TUTORIAL_KEY = "pixel-studio-tycoon-tutorial-v1";
 const UPGRADE_ICONS: Record<UpgradeId, string> = {
   research: "â–¤",
   prototype: "â—‡",
@@ -71,8 +73,12 @@ const ui = {
   queueList: element("queue-list"),
   queueCapacity: element("queue-capacity"),
   resetButton: element<HTMLButtonElement>("reset-button"),
+  helpButton: element<HTMLButtonElement>("help-button"),
   resetDialog: element<HTMLDialogElement>("reset-dialog"),
   confirmReset: element<HTMLButtonElement>("confirm-reset"),
+  ideaDialog: element<HTMLDialogElement>("idea-dialog"),
+  tutorialDialog: element<HTMLDialogElement>("tutorial-dialog"),
+  tutorialDone: element<HTMLButtonElement>("tutorial-done"),
 };
 
 let state = loadState();
@@ -82,6 +88,7 @@ let upgradeRenderKey = "";
 let projectRenderKey = "";
 let queueRenderKey = "";
 let ideaRenderKey = "";
+let ideaDialogScheduled = false;
 
 const elapsedOffline = Math.max(0, Math.floor((Date.now() - state.lastSavedAt) / 1000));
 if (elapsedOffline > 2) {
@@ -97,13 +104,20 @@ ui.workButton.addEventListener("click", () => {
     const project = getCurrentProject(state);
     const gameName = state.currentGameName;
     const fanReward = getFanReward(state, project);
-    if (publish(state)) message = `${gameName} published for $${formatNumber(project.moneyReward)} and ${formatNumber(fanReward)} fans.`;
+    const releasePayment = getReleasePayment(state);
+    if (publish(state)) message = `${gameName} launched! Final payment: $${formatNumber(releasePayment)} plus ${formatNumber(fanReward)} fans.`;
     saveAndRender();
     return;
   }
+  const moneyBefore = state.money;
   tap(state);
   const phase = getCurrentPhase(state).phase;
-  message = canPublish(state) ? "Development is complete. Publish when you are ready." : phase.action;
+  const milestonePayment = state.money - moneyBefore;
+  message = canPublish(state)
+    ? "Development is complete. Publish when you are ready."
+    : milestonePayment > 0
+      ? `${phase.name} milestone funded: +$${formatNumber(milestonePayment)}.`
+      : phase.action;
   saveAndRender();
 });
 
@@ -140,8 +154,19 @@ ui.ideaList.addEventListener("click", (event) => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-idea-id]");
   if (!button || !chooseIdea(state, button.dataset.ideaId ?? "")) return;
   message = `${state.currentGameName} selected. Development begins with Concept.`;
+  ui.ideaDialog.close();
   saveAndRender();
 });
+
+ui.helpButton.addEventListener("click", () => {
+  if (!ui.tutorialDialog.open) ui.tutorialDialog.showModal();
+});
+ui.tutorialDone.addEventListener("click", () => {
+  localStorage.setItem(TUTORIAL_KEY, "complete");
+  ui.tutorialDialog.close();
+  if (!state.currentIdea && !ui.ideaDialog.open) ui.ideaDialog.showModal();
+});
+ui.ideaDialog.addEventListener("cancel", (event) => event.preventDefault());
 
 ui.queueList.addEventListener("click", (event) => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-remove-queue]");
@@ -197,6 +222,9 @@ function sanitizeState(candidate: GameState): GameState {
   clean.fans = Math.max(0, numberValue(candidate.fans));
   clean.gamesPublished = Math.max(0, Math.floor(numberValue(candidate.gamesPublished)));
   clean.ideaOptions = generateIdeaOptions(clean.gamesPublished);
+  clean.milestonePaymentsClaimed = Array.isArray(candidate.milestonePaymentsClaimed)
+    ? candidate.milestonePaymentsClaimed.filter((value) => Number.isInteger(value) && value >= 0 && value < 4)
+    : [];
   const savedIdeaId = candidate.currentIdea?.id;
   clean.currentIdea = clean.ideaOptions.find((idea) => idea.id === savedIdeaId) ?? null;
   if (!clean.currentIdea && numberValue(candidate.work) > 0) clean.currentIdea = clean.ideaOptions.find((idea) => idea.profile === "promising") ?? null;
@@ -299,6 +327,13 @@ function render(): void {
   renderIdeas();
   renderProjects();
   renderQueue();
+  if (!state.currentIdea && !ideaDialogScheduled && !ui.ideaDialog.open && !ui.tutorialDialog.open && localStorage.getItem(TUTORIAL_KEY) === "complete") {
+    ideaDialogScheduled = true;
+    window.setTimeout(() => {
+      ideaDialogScheduled = false;
+      if (!state.currentIdea && !ui.ideaDialog.open && !ui.tutorialDialog.open) ui.ideaDialog.showModal();
+    }, 0);
+  }
 }
 
 function renderIdeas(): void {
@@ -395,4 +430,5 @@ function renderQueue(): void {
 }
 
 render();
+if (localStorage.getItem(TUTORIAL_KEY) !== "complete") ui.tutorialDialog.showModal();
 window.requestAnimationFrame(frame);
