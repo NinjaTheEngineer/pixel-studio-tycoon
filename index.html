@@ -11,7 +11,7 @@
   <main class="game-shell">
     <header class="game-header">
       <div>
-        <p class="eyebrow">Version 0.2 - Automation</p>
+        <p class="eyebrow">Version 0.3 - From concept to launch</p>
         <h1>Pixel Studio Tycoon</h1>
         <p class="tagline">Code games. Build a team. Automate your studio.</p>
       </div>
@@ -36,7 +36,8 @@
         <div class="workstation">
           <div class="monitor">
             <span class="monitor-label">CURRENT PROJECT</span>
-            <strong id="current-project-title">Tiny Adventure</strong>
+            <strong id="current-project-title">Lantern Vale</strong>
+            <span id="current-project-type">Tiny Adventure Â· Concept</span>
             <span id="work-value">0 / 25 work</span>
           </div>
           <div class="desk"></div>
@@ -44,6 +45,11 @@
 
         <div class="progress" role="progressbar" aria-label="Current game development" aria-valuemin="0" aria-valuemax="25" aria-valuenow="0" id="project-progress">
           <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="phase-panel">
+          <div class="phase-heading"><span>Development roadmap</span><strong id="phase-progress-label">Concept Â· 0%</strong></div>
+          <div class="phase-list" id="phase-list" aria-label="Development phases"></div>
         </div>
 
         <div class="focus-row">
