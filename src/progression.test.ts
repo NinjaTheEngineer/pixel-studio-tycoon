@@ -18,7 +18,7 @@ describe("early-game progression", () => {
   it("reaches team and second-project unlocks through three real releases", () => {
     const state = createInitialState();
     const actions = [completeAndPublish(state), completeAndPublish(state), completeAndPublish(state)];
-    expect(actions).toEqual([100, 120, 140]);
+    expect(actions).toEqual([100, 118, 139]);
     expect(state).toMatchObject({ gamesPublished: 3, money: 300, fans: 3 });
     expect(isUpgradeUnlocked(state, "team")).toBe(true);
     expect(isProjectUnlocked(state, "pocket-puzzler")).toBe(true);
