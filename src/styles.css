@@ -24,7 +24,7 @@ h1 { margin-bottom: 8px; font-size: clamp(2rem, 5vw, 4rem); line-height: .95; le
 h2 { margin-bottom: 0; font-size: 1.25rem; }
 h3 { margin-bottom: 6px; font-size: 1rem; }
 .game-shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 64px; }
-.game-header, .section-heading, .primary-actions, .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.game-header, .section-heading, .primary-actions, .dialog-actions, .header-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .tagline { margin-bottom: 0; color: var(--muted); }
 .eyebrow { margin-bottom: 8px; color: var(--accent); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .text-button { padding: 8px; color: var(--muted); background: transparent; border: 0; cursor: pointer; }
@@ -39,12 +39,12 @@ h3 { margin-bottom: 6px; font-size: 1rem; }
 
 .game-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr); align-items: start; gap: 18px; }
 .studio-panel, .management-panel, .planning-section { border-radius: 20px; }
-.studio-panel { position: relative; min-height: 720px; padding: 34px 42px; display: grid; grid-template-rows: auto auto auto auto auto; align-content: center; overflow: hidden; background: linear-gradient(rgba(23, 26, 44, .2), rgba(23, 26, 44, .96)), repeating-linear-gradient(90deg, transparent 0 59px, rgba(255,255,255,.025) 60px), var(--surface); }
+.studio-panel { position: relative; min-height: 720px; padding: 34px 42px; display: grid; grid-template-rows: auto auto auto auto auto; align-content: center; overflow: hidden; background: radial-gradient(circle at 50% 66%, rgba(140,124,255,.18), transparent 16rem), linear-gradient(rgba(23, 26, 44, .2), rgba(23, 26, 44, .96)), repeating-linear-gradient(90deg, transparent 0 59px, rgba(255,255,255,.025) 60px), var(--surface); }
 .room-decoration { position: absolute; inset: 40px 38px auto; display: flex; justify-content: space-between; align-items: flex-start; color: var(--muted); }
 .plant { color: var(--accent); font-size: 4rem; font-weight: 800; transform: rotate(-12deg); }
 .poster { padding: 12px 18px; border: 1px solid var(--border); color: var(--primary-hover); font-weight: 800; text-align: center; transform: rotate(2deg); }
 .lamp { width: 18px; height: 80px; border-radius: 12px 12px 4px 4px; background: var(--surface-soft); box-shadow: 0 70px 60px rgba(140, 124, 255, .22); }
-.workstation { position: relative; width: min(340px, 78%); margin: 18px auto 24px; display: grid; justify-items: center; }
+.workstation { position: relative; width: min(300px, 72%); margin: 16px auto 10px; display: grid; justify-items: center; opacity: .72; transform: scale(.82); transform-origin: center; }
 .monitor { position: relative; z-index: 1; width: min(280px, 90%); aspect-ratio: 16 / 10; padding: 24px; border: 8px solid #080914; border-radius: 12px; display: grid; align-content: center; justify-items: center; gap: 10px; text-align: center; background: linear-gradient(145deg, #272d52, #15182d); box-shadow: 0 0 50px rgba(140, 124, 255, .18); }
 .monitor::after { content: ""; position: absolute; width: 46px; height: 34px; left: calc(50% - 23px); bottom: -38px; background: #080914; }
 .monitor-label { color: var(--accent); font-size: .68rem; font-weight: 700; letter-spacing: .12em; }
@@ -68,8 +68,10 @@ h3 { margin-bottom: 6px; font-size: 1rem; }
 .phase-step strong { font-size: .66rem; font-weight: 650; }
 .phase-step.active { border-color: var(--warning); color: var(--warning); opacity: 1; }
 .phase-step.complete { border-color: var(--accent); color: var(--accent); opacity: .82; }
-.primary-actions { justify-content: center; margin-top: 18px; }
-.main-action { width: min(320px, 100%); min-height: 56px; font-size: 1.08rem; }
+.primary-actions { justify-content: center; margin-top: 24px; }
+.main-action { width: 176px; height: 176px; min-height: 176px; padding: 20px; border: 8px solid rgba(255,255,255,.12); border-radius: 50%; font-size: 1.35rem; box-shadow: 0 12px 0 #5448bd, 0 28px 60px rgba(0,0,0,.42); }
+.main-action:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); }
+.main-action:active:not(:disabled) { transform: translateY(8px) scale(.98); box-shadow: 0 4px 0 #5448bd, 0 18px 40px rgba(0,0,0,.35); }
 .status-message { min-height: 24px; margin: 14px 0 0; color: var(--muted); text-align: center; }
 
 .button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: var(--surface-soft); cursor: pointer; transition: transform 120ms ease, background 120ms ease, border-color 120ms ease; }
@@ -96,7 +98,7 @@ h3 { margin-bottom: 6px; font-size: 1rem; }
 .switch input { width: 42px; height: 22px; accent-color: var(--accent); }
 
 .planning-section { margin-top: 18px; padding: 26px; }
-.brainstorm-panel { margin-top: 22px; padding: 20px; border: 1px solid var(--primary); border-radius: 16px; background: rgba(140,124,255,.06); }
+.brainstorm-panel { padding: 4px; background: transparent; }
 .brainstorm-panel.selected { border-color: var(--border); background: rgba(255,255,255,.02); }
 .brainstorm-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .brainstorm-heading > span, .brainstorm-panel > p { color: var(--muted); font-size: .82rem; }
@@ -131,6 +133,11 @@ dialog { width: min(420px, calc(100% - 32px)); padding: 26px; border: 1px solid 
 dialog::backdrop { background: rgba(4, 5, 12, .78); }
 dialog p { color: var(--muted); line-height: 1.5; }
 .dialog-actions { justify-content: flex-end; margin-top: 24px; }
+.idea-dialog { width: min(900px, calc(100% - 32px)); }
+.tutorial-dialog { width: min(680px, calc(100% - 32px)); }
+.tutorial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 22px 0; }
+.tutorial-grid article { padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-raised); }
+.tutorial-grid article p { margin: 8px 0 0; font-size: .86rem; }
 
 @media (max-width: 900px) {
   .game-grid { grid-template-columns: 1fr; }
@@ -153,6 +160,7 @@ dialog p { color: var(--muted); line-height: 1.5; }
   .phase-list { grid-template-columns: 1fr; }
   .phase-step { grid-template-columns: 24px 1fr; justify-items: start; text-align: left; }
   .phase-panel { min-height: 390px; margin-top: 48px; grid-template-rows: auto 36px 82px auto; }
+  .tutorial-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
