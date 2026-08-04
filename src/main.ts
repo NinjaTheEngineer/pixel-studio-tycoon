@@ -9,11 +9,9 @@ import {
   createInitialState,
   formatNumber,
   getBaseProduction,
-  getClickPower,
   getCurrentPhase,
   getCurrentProject,
   getFanReward,
-  getFocusMultiplier,
   getGeneratedGameName,
   getUpgradeCost,
   isProjectUnlocked,
@@ -44,14 +42,12 @@ const ui = {
   projectProgress: element("project-progress"),
   progressFill: element("progress-fill"),
   phaseProgressLabel: element("phase-progress-label"),
+  phaseAction: element("phase-action"),
+  phaseDescription: element("phase-description"),
   phaseList: element("phase-list"),
-  focusMultiplier: element("focus-multiplier"),
-  focusProgress: element("focus-progress"),
-  focusFill: element("focus-fill"),
   status: element("status-message"),
   saveStatus: element("save-status"),
   workButton: element<HTMLButtonElement>("work-button"),
-  publishButton: element<HTMLButtonElement>("publish-button"),
   autoPublishToggle: element<HTMLInputElement>("auto-publish-toggle"),
   upgradeList: element("upgrade-list"),
   projectList: element("project-list"),
@@ -63,7 +59,7 @@ const ui = {
 };
 
 let state = loadState();
-let message = "Start with a focused work session.";
+let message = "Your bedroom studio is ready. Begin the concept phase.";
 let lastFrame = performance.now();
 let upgradeRenderKey = "";
 let projectRenderKey = "";
@@ -79,19 +75,17 @@ if (elapsedOffline > 2) {
 }
 
 ui.workButton.addEventListener("click", () => {
+  if (canPublish(state)) {
+    const project = getCurrentProject(state);
+    const gameName = state.currentGameName;
+    const fanReward = getFanReward(state, project);
+    if (publish(state)) message = `${gameName} published for $${formatNumber(project.moneyReward)} and ${formatNumber(fanReward)} fans.`;
+    saveAndRender();
+    return;
+  }
   tap(state);
-  message = canPublish(state)
-    ? "The game is ready to publish."
-    : `Focused work added. The whole studio is now ${getFocusMultiplier(state).toFixed(2)}x faster.`;
-  saveAndRender();
-});
-
-ui.publishButton.addEventListener("click", () => {
-  const project = getCurrentProject(state);
-  const gameName = state.currentGameName;
-  const fanReward = getFanReward(state, project);
-  if (!publish(state)) return;
-  message = `${gameName} published for $${formatNumber(project.moneyReward)} and ${formatNumber(fanReward)} fans.`;
+  const phase = getCurrentPhase(state).phase;
+  message = canPublish(state) ? "Development is complete. Publish when you are ready." : phase.action;
   saveAndRender();
 });
 
@@ -178,8 +172,11 @@ function sanitizeState(candidate: GameState): GameState {
   clean.fans = Math.max(0, numberValue(candidate.fans));
   clean.gamesPublished = Math.max(0, Math.floor(numberValue(candidate.gamesPublished)));
   clean.upgradeLevels = {
-    tools: clampLevel(candidate.upgradeLevels?.tools, "tools"),
-    marketing: clampLevel(candidate.upgradeLevels?.marketing, "marketing"),
+    research: clampLevel(candidate.upgradeLevels?.research, "research"),
+    prototype: clampLevel(candidate.upgradeLevels?.prototype, "prototype"),
+    workstation: clampLevel(candidate.upgradeLevels?.workstation, "workstation"),
+    playtesting: clampLevel(candidate.upgradeLevels?.playtesting, "playtesting"),
+    storefront: clampLevel(candidate.upgradeLevels?.storefront, "storefront"),
     team: clampLevel(candidate.upgradeLevels?.team, "team"),
     pipeline: clampLevel(candidate.upgradeLevels?.pipeline, "pipeline"),
   };
@@ -209,7 +206,7 @@ function migrateOldState(old: Record<string, unknown>): GameState {
   migrated.money = numberValue(old.money);
   migrated.fans = numberValue(old.fans);
   migrated.gamesPublished = numberValue(old.games);
-  migrated.upgradeLevels.tools = old.keyboardPurchased ? 1 : 0;
+  migrated.upgradeLevels.workstation = old.keyboardPurchased ? 1 : 0;
   migrated.upgradeLevels.team = old.developerHired ? 1 : 0;
   migrated.lastSavedAt = numberValue(old.lastSavedAt) || Date.now();
   return migrated;
@@ -251,15 +248,13 @@ function render(): void {
   ui.projectProgress.setAttribute("aria-valuenow", String(Math.floor(state.work)));
   ui.progressFill.style.width = `${progress}%`;
   ui.phaseProgressLabel.textContent = `${currentPhase.phase.name} Â· ${Math.floor(currentPhase.progress * 100)}%`;
+  ui.phaseAction.textContent = currentPhase.phase.action;
+  ui.phaseDescription.textContent = currentPhase.phase.description;
   ui.phaseList.innerHTML = DEVELOPMENT_PHASES.map((phase, index) => {
     const status = index < currentPhase.index ? "complete" : index === currentPhase.index ? "active" : "pending";
     return `<div class="phase-step ${status}"><span>${index + 1}</span><strong>${phase.name}</strong></div>`;
   }).join("");
-  ui.focusMultiplier.textContent = `x${getFocusMultiplier(state).toFixed(2)}`;
-  ui.focusProgress.setAttribute("aria-valuenow", String(Math.round(state.focus)));
-  ui.focusFill.style.width = `${state.focus}%`;
-  ui.workButton.textContent = `Do focused work +${formatNumber(getClickPower(state))}`;
-  ui.publishButton.disabled = !canPublish(state);
+  ui.workButton.textContent = canPublish(state) ? "Publish" : "Work";
   ui.autoPublishToggle.disabled = !pipelineUnlocked;
   ui.autoPublishToggle.checked = pipelineUnlocked && state.autoPublish;
   ui.status.textContent = message;
