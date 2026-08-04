@@ -5,15 +5,15 @@ import { chooseDefaultIdea } from "./test-helpers";
 describe("development phases", () => {
   it.each([
     [0, "Concept", 0],
-    [149, "Concept", 0],
-    [150, "Pre-production", 1],
-    [349, "Pre-production", 1],
-    [350, "Production", 2],
-    [699, "Production", 2],
-    [700, "Polish & QA", 3],
-    [899, "Polish & QA", 3],
-    [900, "Launch prep", 4],
-    [1000, "Launch prep", 4],
+    [14, "Concept", 0],
+    [15, "Pre-production", 1],
+    [34, "Pre-production", 1],
+    [35, "Production", 2],
+    [69, "Production", 2],
+    [70, "Polish & QA", 3],
+    [89, "Polish & QA", 3],
+    [90, "Launch prep", 4],
+    [100, "Launch prep", 4],
   ])("maps %i work to %s", (work, name, index) => {
     const state = createInitialState();
     state.work = work;
@@ -22,9 +22,9 @@ describe("development phases", () => {
 
   it("reports normalized progress inside the active phase", () => {
     const state = createInitialState();
-    state.work = 75;
+    state.work = 7.5;
     expect(getCurrentPhase(state).progress).toBeCloseTo(0.5);
-    state.work = 250;
+    state.work = 25;
     expect(getCurrentPhase(state).progress).toBeCloseTo(0.5);
   });
 
@@ -32,17 +32,17 @@ describe("development phases", () => {
     const state = createInitialState();
     state.money = 35;
     expect(buyUpgrade(state, "research")).toBe(true);
-    expect(getClickPower(state)).toBe(15);
-    state.work = 150;
-    expect(getClickPower(state)).toBe(10);
+    expect(getClickPower(state)).toBe(1.5);
+    state.work = 15;
+    expect(getClickPower(state)).toBe(1);
   });
 
   it("never lets manual work overflow beyond the project requirement", () => {
     const state = createInitialState();
     chooseDefaultIdea(state);
-    state.work = 995;
+    state.work = 99.5;
     tap(state);
-    expect(state.work).toBe(1000);
+    expect(state.work).toBe(100);
   });
 
   it("pays each completed development milestone exactly once", () => {
