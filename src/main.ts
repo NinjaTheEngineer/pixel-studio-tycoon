@@ -1,18 +1,22 @@
 import "./styles.css";
 import { DEVELOPMENT_PHASES, PROJECTS, PROJECT_BY_ID, UPGRADES } from "./data";
+import { generateIdeaOptions } from "./ideas";
 import {
   SAVE_KEY,
   advanceOffline,
   advanceRealtime,
   buyUpgrade,
   canPublish,
+  chooseIdea,
   createInitialState,
   formatNumber,
   getBaseProduction,
   getCurrentPhase,
   getCurrentProject,
   getFanReward,
-  getGeneratedGameName,
+  getCurrentObjective,
+  getProjectStepCount,
+  getRequiredWork,
   getUpgradeCost,
   isProjectUnlocked,
   isUpgradeUnlocked,
@@ -61,6 +65,9 @@ const ui = {
   autoPublishToggle: element<HTMLInputElement>("auto-publish-toggle"),
   upgradeList: element("upgrade-list"),
   projectList: element("project-list"),
+  brainstormPanel: element("brainstorm-panel"),
+  ideaList: element("idea-list"),
+  projectComplexity: element("project-complexity"),
   queueList: element("queue-list"),
   queueCapacity: element("queue-capacity"),
   resetButton: element<HTMLButtonElement>("reset-button"),
@@ -74,6 +81,7 @@ let lastFrame = performance.now();
 let upgradeRenderKey = "";
 let projectRenderKey = "";
 let queueRenderKey = "";
+let ideaRenderKey = "";
 
 const elapsedOffline = Math.max(0, Math.floor((Date.now() - state.lastSavedAt) / 1000));
 if (elapsedOffline > 2) {
@@ -125,6 +133,13 @@ ui.projectList.addEventListener("click", (event) => {
   if (button.dataset.projectAction === "queue" && queueProject(state, id)) {
     message = `${PROJECT_BY_ID[id].name} added to the production queue.`;
   }
+  saveAndRender();
+});
+
+ui.ideaList.addEventListener("click", (event) => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-idea-id]");
+  if (!button || !chooseIdea(state, button.dataset.ideaId ?? "")) return;
+  message = `${state.currentGameName} selected. Development begins with Concept.`;
   saveAndRender();
 });
 
@@ -181,6 +196,10 @@ function sanitizeState(candidate: GameState): GameState {
   clean.money = Math.max(0, numberValue(candidate.money));
   clean.fans = Math.max(0, numberValue(candidate.fans));
   clean.gamesPublished = Math.max(0, Math.floor(numberValue(candidate.gamesPublished)));
+  clean.ideaOptions = generateIdeaOptions(clean.gamesPublished);
+  const savedIdeaId = candidate.currentIdea?.id;
+  clean.currentIdea = clean.ideaOptions.find((idea) => idea.id === savedIdeaId) ?? null;
+  if (!clean.currentIdea && numberValue(candidate.work) > 0) clean.currentIdea = clean.ideaOptions.find((idea) => idea.profile === "promising") ?? null;
   clean.upgradeLevels = {
     research: clampLevel(candidate.upgradeLevels?.research, "research"),
     prototype: clampLevel(candidate.upgradeLevels?.prototype, "prototype"),
@@ -196,12 +215,12 @@ function sanitizeState(candidate: GameState): GameState {
     ? candidate.projectQueue.filter((id): id is ProjectId => Boolean(PROJECT_BY_ID[id])).slice(0, 3)
     : [];
   clean.autoPublish = Boolean(candidate.autoPublish) && clean.upgradeLevels.pipeline > 0;
-  clean.currentGameName = typeof candidate.currentGameName === "string" && candidate.currentGameName.trim()
+  clean.currentGameName = clean.currentIdea?.title ?? (typeof candidate.currentGameName === "string" && candidate.currentGameName.trim()
     ? candidate.currentGameName.trim().slice(0, 40)
-    : getGeneratedGameName(clean.currentProjectId, clean.gamesPublished);
+    : "Choose your next project");
   clean.focus = Math.max(0, Math.min(100, numberValue(candidate.focus)));
   clean.lastSavedAt = numberValue(candidate.lastSavedAt) || Date.now();
-  clean.work = Math.min(clean.work, getCurrentProject(clean).workRequired);
+  clean.work = Math.min(clean.work, getRequiredWork(clean));
   return clean;
 }
 
@@ -243,9 +262,11 @@ function saveState(): void {
 
 function render(): void {
   const project = getCurrentProject(state);
-  const progress = Math.min(100, state.work / project.workRequired * 100);
+  const requiredWork = getRequiredWork(state);
+  const progress = Math.min(100, state.work / requiredWork * 100);
   const pipelineUnlocked = state.upgradeLevels.pipeline > 0;
   const currentPhase = getCurrentPhase(state);
+  const currentObjective = getCurrentObjective(state);
 
   ui.money.textContent = `$${formatNumber(state.money)}`;
   ui.fans.textContent = formatNumber(state.fans);
@@ -253,27 +274,50 @@ function render(): void {
   ui.production.textContent = `${getBaseProduction(state).toFixed(1)}/s`;
   ui.projectTitle.textContent = state.currentGameName;
   ui.projectType.textContent = `${project.name} Â· ${currentPhase.phase.name}`;
-  ui.work.textContent = `${formatNumber(state.work)} / ${formatNumber(project.workRequired)} work`;
-  ui.projectProgress.setAttribute("aria-valuemax", String(project.workRequired));
+  ui.work.textContent = state.currentIdea ? `${formatNumber(state.work)} / ${formatNumber(requiredWork)} work` : "Brainstorming required";
+  ui.projectProgress.setAttribute("aria-valuemax", String(requiredWork));
   ui.projectProgress.setAttribute("aria-valuenow", String(Math.floor(state.work)));
   ui.progressFill.style.width = `${progress}%`;
-  ui.phaseProgressLabel.textContent = `${currentPhase.phase.name} Â· ${Math.floor(currentPhase.progress * 100)}%`;
+  ui.phaseProgressLabel.textContent = state.currentIdea
+    ? `${currentPhase.phase.name} Â· Objective ${currentObjective.index + 1}/${currentObjective.count} Â· ${Math.floor(currentPhase.progress * 100)}%`
+    : "Waiting for a project idea";
   ui.currentPhaseIcon.textContent = currentPhase.phase.icon;
-  ui.phaseAction.textContent = currentPhase.phase.action;
-  ui.phaseDescription.textContent = currentPhase.phase.description;
+  ui.phaseAction.textContent = state.currentIdea ? currentPhase.phase.action : "Brainstorm your next game";
+  ui.phaseDescription.textContent = state.currentIdea ? currentPhase.phase.description : "Compare three concepts and choose the milestone your bedroom studio will commit to.";
   ui.phaseList.innerHTML = DEVELOPMENT_PHASES.map((phase, index) => {
     const status = index < currentPhase.index ? "complete" : index === currentPhase.index ? "active" : "pending";
     return `<div class="phase-step ${status}"><span aria-hidden="true">${phase.icon}</span><strong>${phase.name}</strong></div>`;
   }).join("");
   ui.workButton.textContent = canPublish(state) ? "Publish" : "Work";
+  ui.workButton.disabled = !state.currentIdea;
   ui.autoPublishToggle.disabled = !pipelineUnlocked;
   ui.autoPublishToggle.checked = pipelineUnlocked && state.autoPublish;
   ui.status.textContent = message;
   ui.queueCapacity.textContent = pipelineUnlocked ? `Queue ${state.projectQueue.length} / 3` : "Queue locked";
 
   renderUpgrades();
+  renderIdeas();
   renderProjects();
   renderQueue();
+}
+
+function renderIdeas(): void {
+  const steps = getProjectStepCount(state);
+  ui.projectComplexity.textContent = `${steps} objective${steps === 1 ? "" : "s"} per phase`;
+  ui.brainstormPanel.classList.toggle("selected", Boolean(state.currentIdea));
+  const nextKey = `${state.currentIdea?.id ?? "none"}|${state.ideaOptions.map((idea) => idea.id).join("|")}`;
+  if (nextKey === ideaRenderKey) return;
+  ideaRenderKey = nextKey;
+  ui.ideaList.innerHTML = state.ideaOptions.map((idea) => {
+    const selected = state.currentIdea?.id === idea.id;
+    return `<article class="idea-card ${idea.profile} ${selected ? "selected" : ""}">
+      <span class="idea-profile">${idea.profile}</span>
+      <h3>${idea.title}</h3>
+      <p>${idea.pitch}</p>
+      <dl><div><dt>Potential</dt><dd>${idea.potentialMin}â€“${idea.potentialMax}</dd></div><div><dt>Risk</dt><dd>${idea.risk}%</dd></div><div><dt>Work</dt><dd>x${idea.workMultiplier.toFixed(1)}</dd></div></dl>
+      <button class="button button-small" type="button" data-idea-id="${idea.id}" ${state.currentIdea ? "disabled" : ""}>${selected ? "Selected" : "Choose idea"}</button>
+    </article>`;
+  }).join("");
 }
 
 function renderUpgrades(): void {
