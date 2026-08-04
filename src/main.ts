@@ -10,7 +10,8 @@ import {
   chooseIdea,
   createInitialState,
   formatNumber,
-  getBaseProduction,
+  getClickPower,
+  getPatronIncomePerSecond,
   getCurrentPhase,
   getCurrentProject,
   getFanReward,
@@ -36,6 +37,7 @@ const UPGRADE_ICONS: Record<UpgradeId, string> = {
   workstation: "â–£",
   playtesting: "âœ“",
   storefront: "â–±",
+  patronSupport: "P",
   team: "+",
   pipeline: "â†»",
 };
@@ -63,7 +65,9 @@ const ui = {
   phaseList: element("phase-list"),
   status: element("status-message"),
   saveStatus: element("save-status"),
-  workButton: element<HTMLButtonElement>("work-button"),
+  computerArea: element<HTMLElement>("computer-area"),
+  tapPopup: element("tap-popup"),
+  computerActionLabel: element("computer-action-label"),
   autoPublishToggle: element<HTMLInputElement>("auto-publish-toggle"),
   upgradeList: element("upgrade-list"),
   projectList: element("project-list"),
@@ -78,8 +82,20 @@ const ui = {
   confirmReset: element<HTMLButtonElement>("confirm-reset"),
   ideaDialog: element<HTMLDialogElement>("idea-dialog"),
   tutorialDialog: element<HTMLDialogElement>("tutorial-dialog"),
-  tutorialDone: element<HTMLButtonElement>("tutorial-done"),
+  tutorialStepCount: element("tutorial-step-count"),
+  tutorialTitle: element("tutorial-title"),
+  tutorialCopy: element("tutorial-copy"),
+  tutorialBack: element<HTMLButtonElement>("tutorial-back"),
+  tutorialNext: element<HTMLButtonElement>("tutorial-next"),
 };
+
+const TUTORIAL_STEPS = [
+  { title: "Choose a project idea", copy: "Every game begins with three concepts: Safe, Promising, and Wild. Higher potential also means more work and risk." },
+  { title: "Tap the computer to work", copy: "The computer is your Work button. Each tap advances the current objective; the label changes when your game is ready to publish." },
+  { title: "Milestones pay early", copy: "Concept, Pre-production, Production, and Polish each pay part of the contract. Patrons are rare, but each one supports you with recurring cash." },
+  { title: "Build a real studio", copy: "Spend milestone money on upgrades. Use the bottom tabs to move between your computer, upgrades, and larger future projects." },
+] as const;
+let tutorialStep = 0;
 
 let state = loadState();
 let message = "Your bedroom studio is ready. Begin the concept phase.";
@@ -99,18 +115,26 @@ if (elapsedOffline > 2) {
   else if (state.work > 0) message = `Your team made ${formatNumber(state.work)} work while you were away.`;
 }
 
-ui.workButton.addEventListener("click", () => {
+function performComputerAction(): void {
+  if (!state.currentIdea) return;
   if (canPublish(state)) {
     const project = getCurrentProject(state);
     const gameName = state.currentGameName;
     const fanReward = getFanReward(state, project);
     const releasePayment = getReleasePayment(state);
-    if (publish(state)) message = `${gameName} launched! Final payment: $${formatNumber(releasePayment)} plus ${formatNumber(fanReward)} fans.`;
+    if (publish(state)) message = `${gameName} launched! Final payment: $${formatNumber(releasePayment)} plus ${formatNumber(fanReward)} Patron${fanReward === 1 ? "" : "s"}.`;
     saveAndRender();
     return;
   }
   const moneyBefore = state.money;
+  const tapAmount = getClickPower(state);
   tap(state);
+  ui.tapPopup.textContent = `+${formatNumber(tapAmount)}`;
+  ui.tapPopup.classList.remove("show");
+  ui.computerArea.classList.remove("shake");
+  void ui.tapPopup.offsetWidth;
+  ui.tapPopup.classList.add("show");
+  ui.computerArea.classList.add("shake");
   const phase = getCurrentPhase(state).phase;
   const milestonePayment = state.money - moneyBefore;
   message = canPublish(state)
@@ -119,7 +143,15 @@ ui.workButton.addEventListener("click", () => {
       ? `${phase.name} milestone funded: +$${formatNumber(milestonePayment)}.`
       : phase.action;
   saveAndRender();
+}
+
+ui.computerArea.addEventListener("click", performComputerAction);
+ui.computerArea.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  performComputerAction();
 });
+ui.computerArea.addEventListener("animationend", () => ui.computerArea.classList.remove("shake"));
 
 ui.autoPublishToggle.addEventListener("change", () => {
   state.autoPublish = ui.autoPublishToggle.checked && state.upgradeLevels.pipeline > 0;
@@ -155,13 +187,25 @@ ui.ideaList.addEventListener("click", (event) => {
   if (!button || !chooseIdea(state, button.dataset.ideaId ?? "")) return;
   message = `${state.currentGameName} selected. Development begins with Concept.`;
   ui.ideaDialog.close();
+  showView("work-view");
   saveAndRender();
 });
 
 ui.helpButton.addEventListener("click", () => {
+  tutorialStep = 0;
+  renderTutorialStep();
   if (!ui.tutorialDialog.open) ui.tutorialDialog.showModal();
 });
-ui.tutorialDone.addEventListener("click", () => {
+ui.tutorialBack.addEventListener("click", () => {
+  tutorialStep = Math.max(0, tutorialStep - 1);
+  renderTutorialStep();
+});
+ui.tutorialNext.addEventListener("click", () => {
+  if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+    tutorialStep += 1;
+    renderTutorialStep();
+    return;
+  }
   localStorage.setItem(TUTORIAL_KEY, "complete");
   ui.tutorialDialog.close();
   if (!state.currentIdea && !ui.ideaDialog.open) ui.ideaDialog.showModal();
@@ -234,6 +278,7 @@ function sanitizeState(candidate: GameState): GameState {
     workstation: clampLevel(candidate.upgradeLevels?.workstation, "workstation"),
     playtesting: clampLevel(candidate.upgradeLevels?.playtesting, "playtesting"),
     storefront: clampLevel(candidate.upgradeLevels?.storefront, "storefront"),
+    patronSupport: clampLevel(candidate.upgradeLevels?.patronSupport, "patronSupport"),
     team: clampLevel(candidate.upgradeLevels?.team, "team"),
     pipeline: clampLevel(candidate.upgradeLevels?.pipeline, "pipeline"),
   };
@@ -299,7 +344,7 @@ function render(): void {
   ui.money.textContent = `$${formatNumber(state.money)}`;
   ui.fans.textContent = formatNumber(state.fans);
   ui.games.textContent = formatNumber(state.gamesPublished);
-  ui.production.textContent = `${getBaseProduction(state).toFixed(1)}/s`;
+  ui.production.textContent = `$${getPatronIncomePerSecond(state).toFixed(2)}/s`;
   ui.projectTitle.textContent = state.currentGameName;
   ui.projectType.textContent = `${project.name} Â· ${currentPhase.phase.name}`;
   ui.work.textContent = state.currentIdea ? `${formatNumber(state.work)} / ${formatNumber(requiredWork)} work` : "Brainstorming required";
@@ -316,8 +361,13 @@ function render(): void {
     const status = index < currentPhase.index ? "complete" : index === currentPhase.index ? "active" : "pending";
     return `<div class="phase-step ${status}"><span aria-hidden="true">${phase.icon}</span><strong>${phase.name}</strong></div>`;
   }).join("");
-  ui.workButton.textContent = canPublish(state) ? "Publish" : "Work";
-  ui.workButton.disabled = !state.currentIdea;
+  ui.computerArea.setAttribute("aria-disabled", String(!state.currentIdea));
+  ui.computerArea.tabIndex = state.currentIdea ? 0 : -1;
+  ui.computerActionLabel.textContent = !state.currentIdea
+    ? "CHOOSE A PROJECT IDEA"
+    : canPublish(state)
+      ? "TAP COMPUTER TO PUBLISH"
+      : `TAP COMPUTER Â· +${formatNumber(getClickPower(state))} WORK`;
   ui.autoPublishToggle.disabled = !pipelineUnlocked;
   ui.autoPublishToggle.checked = pipelineUnlocked && state.autoPublish;
   ui.status.textContent = message;
@@ -429,6 +479,24 @@ function renderQueue(): void {
     </div>`).join("");
 }
 
+function renderTutorialStep(): void {
+  const step = TUTORIAL_STEPS[tutorialStep];
+  ui.tutorialStepCount.textContent = `${tutorialStep + 1} / ${TUTORIAL_STEPS.length}`;
+  ui.tutorialTitle.textContent = step.title;
+  ui.tutorialCopy.textContent = step.copy;
+  ui.tutorialBack.disabled = tutorialStep === 0;
+  ui.tutorialNext.textContent = tutorialStep === TUTORIAL_STEPS.length - 1 ? "Start brainstorming" : "Next";
+}
+
+const viewIds = ["work-view", "upgrades-view", "projects-view"] as const;
+const viewButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-view-target]"));
+function showView(viewId: string): void {
+  viewIds.forEach((id) => element(id).classList.toggle("active-view", id === viewId));
+  viewButtons.forEach((button) => button.classList.toggle("active", button.dataset.viewTarget === viewId));
+}
+viewButtons.forEach((button) => button.addEventListener("click", () => showView(button.dataset.viewTarget ?? "work-view")));
+
+renderTutorialStep();
 render();
 if (localStorage.getItem(TUTORIAL_KEY) !== "complete") ui.tutorialDialog.showModal();
 window.requestAnimationFrame(frame);
