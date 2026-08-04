@@ -11,6 +11,9 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 - Unique generated titles for every release
 - Three brainstormed concepts before every project: safe, promising, and wild
 - Visible potential, risk, and workload tradeoffs
+- First-run tutorial plus a permanent How to Play guide
+- Phase milestone funding before the final release payment
+- Large central Cookie Clicker-style Work/Publish control
 - Increasing milestone complexity across the first three releases
 - Five visible development phases: concept, pre-production, production, polish, and launch preparation
 - A slower early-game economy built around a solo developer
@@ -25,7 +28,7 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 - A configurable three-slot project queue
 - Versioned local saves, v1 migration, and offline progress
 - Responsive desktop and mobile interface
-- Pure economy engine covered by 44 active mechanics tests, with 11 future contracts pending
+- Pure economy engine covered by 45 active mechanics tests, with 11 future contracts pending
 
 Each solo upgrade improves the development phase it logically supports. Staff is delayed until the player has shipped three solo games so hiring feels like a meaningful studio milestone.
 
