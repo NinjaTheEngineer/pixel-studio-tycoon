@@ -1,5 +1,5 @@
 import "./styles.css";
-import { PROJECTS, PROJECT_BY_ID, UPGRADES } from "./data";
+import { DEVELOPMENT_PHASES, PROJECTS, PROJECT_BY_ID, UPGRADES } from "./data";
 import {
   SAVE_KEY,
   advanceOffline,
@@ -10,10 +10,14 @@ import {
   formatNumber,
   getBaseProduction,
   getClickPower,
+  getCurrentPhase,
   getCurrentProject,
+  getFanReward,
   getFocusMultiplier,
+  getGeneratedGameName,
   getUpgradeCost,
   isProjectUnlocked,
+  isUpgradeUnlocked,
   publish,
   queueProject,
   selectProject,
@@ -35,9 +39,12 @@ const ui = {
   games: element("games-value"),
   production: element("production-value"),
   projectTitle: element("current-project-title"),
+  projectType: element("current-project-type"),
   work: element("work-value"),
   projectProgress: element("project-progress"),
   progressFill: element("progress-fill"),
+  phaseProgressLabel: element("phase-progress-label"),
+  phaseList: element("phase-list"),
   focusMultiplier: element("focus-multiplier"),
   focusProgress: element("focus-progress"),
   focusFill: element("focus-fill"),
@@ -81,8 +88,10 @@ ui.workButton.addEventListener("click", () => {
 
 ui.publishButton.addEventListener("click", () => {
   const project = getCurrentProject(state);
+  const gameName = state.currentGameName;
+  const fanReward = getFanReward(state, project);
   if (!publish(state)) return;
-  message = `${project.name} published for $${formatNumber(project.moneyReward)} and ${formatNumber(project.fanReward)} fans.`;
+  message = `${gameName} published for $${formatNumber(project.moneyReward)} and ${formatNumber(fanReward)} fans.`;
   saveAndRender();
 });
 
@@ -170,6 +179,7 @@ function sanitizeState(candidate: GameState): GameState {
   clean.gamesPublished = Math.max(0, Math.floor(numberValue(candidate.gamesPublished)));
   clean.upgradeLevels = {
     tools: clampLevel(candidate.upgradeLevels?.tools, "tools"),
+    marketing: clampLevel(candidate.upgradeLevels?.marketing, "marketing"),
     team: clampLevel(candidate.upgradeLevels?.team, "team"),
     pipeline: clampLevel(candidate.upgradeLevels?.pipeline, "pipeline"),
   };
@@ -179,6 +189,9 @@ function sanitizeState(candidate: GameState): GameState {
     ? candidate.projectQueue.filter((id): id is ProjectId => Boolean(PROJECT_BY_ID[id])).slice(0, 3)
     : [];
   clean.autoPublish = Boolean(candidate.autoPublish) && clean.upgradeLevels.pipeline > 0;
+  clean.currentGameName = typeof candidate.currentGameName === "string" && candidate.currentGameName.trim()
+    ? candidate.currentGameName.trim().slice(0, 40)
+    : getGeneratedGameName(clean.currentProjectId, clean.gamesPublished);
   clean.focus = Math.max(0, Math.min(100, numberValue(candidate.focus)));
   clean.lastSavedAt = numberValue(candidate.lastSavedAt) || Date.now();
   clean.work = Math.min(clean.work, getCurrentProject(clean).workRequired);
@@ -225,16 +238,23 @@ function render(): void {
   const project = getCurrentProject(state);
   const progress = Math.min(100, state.work / project.workRequired * 100);
   const pipelineUnlocked = state.upgradeLevels.pipeline > 0;
+  const currentPhase = getCurrentPhase(state);
 
   ui.money.textContent = `$${formatNumber(state.money)}`;
   ui.fans.textContent = formatNumber(state.fans);
   ui.games.textContent = formatNumber(state.gamesPublished);
   ui.production.textContent = `${getBaseProduction(state).toFixed(1)}/s`;
-  ui.projectTitle.textContent = project.name;
+  ui.projectTitle.textContent = state.currentGameName;
+  ui.projectType.textContent = `${project.name} Â· ${currentPhase.phase.name}`;
   ui.work.textContent = `${formatNumber(state.work)} / ${formatNumber(project.workRequired)} work`;
   ui.projectProgress.setAttribute("aria-valuemax", String(project.workRequired));
   ui.projectProgress.setAttribute("aria-valuenow", String(Math.floor(state.work)));
   ui.progressFill.style.width = `${progress}%`;
+  ui.phaseProgressLabel.textContent = `${currentPhase.phase.name} Â· ${Math.floor(currentPhase.progress * 100)}%`;
+  ui.phaseList.innerHTML = DEVELOPMENT_PHASES.map((phase, index) => {
+    const status = index < currentPhase.index ? "complete" : index === currentPhase.index ? "active" : "pending";
+    return `<div class="phase-step ${status}"><span>${index + 1}</span><strong>${phase.name}</strong></div>`;
+  }).join("");
   ui.focusMultiplier.textContent = `x${getFocusMultiplier(state).toFixed(2)}`;
   ui.focusProgress.setAttribute("aria-valuenow", String(Math.round(state.focus)));
   ui.focusFill.style.width = `${state.focus}%`;
@@ -251,24 +271,25 @@ function render(): void {
 }
 
 function renderUpgrades(): void {
-  const nextKey = `${state.money}|${state.upgradeLevels.tools}|${state.upgradeLevels.team}|${state.upgradeLevels.pipeline}`;
+  const nextKey = `${state.money}|${state.gamesPublished}|${Object.values(state.upgradeLevels).join("|")}`;
   if (nextKey === upgradeRenderKey) return;
   upgradeRenderKey = nextKey;
   ui.upgradeList.innerHTML = UPGRADES.map((upgrade) => {
     const level = state.upgradeLevels[upgrade.id];
     const maxed = level >= upgrade.maxLevel;
+    const unlocked = isUpgradeUnlocked(state, upgrade.id);
     const cost = getUpgradeCost(state, upgrade.id);
-    const disabled = maxed || state.money < cost;
+    const disabled = !unlocked || maxed || state.money < cost;
     return `
       <article class="upgrade-item">
         <div>
           <span class="path-label">${upgrade.path} path</span>
           <h3>${upgrade.name}</h3>
           <p>${upgrade.description}</p>
-          <span>Level ${level} / ${upgrade.maxLevel}</span>
+          <span>${unlocked ? `Level ${level} / ${upgrade.maxLevel}` : `Unlocks after game ${upgrade.unlockGames}`}</span>
         </div>
         <button class="button button-small" type="button" data-upgrade="${upgrade.id}" ${disabled ? "disabled" : ""}>
-          ${maxed ? "Maxed" : `Buy - $${formatNumber(cost)}`}
+          ${!unlocked ? "Locked" : maxed ? "Maxed" : `Buy - $${formatNumber(cost)}`}
         </button>
       </article>`;
   }).join("");
@@ -293,7 +314,7 @@ function renderProjects(): void {
         <dl>
           <div><dt>Work</dt><dd>${formatNumber(item.workRequired)}</dd></div>
           <div><dt>Reward</dt><dd>$${formatNumber(item.moneyReward)}</dd></div>
-          <div><dt>Fans</dt><dd>${formatNumber(item.fanReward)}</dd></div>
+          <div><dt>Fans</dt><dd>${formatNumber(getFanReward(state, item))}</dd></div>
         </dl>
         <div class="project-actions">
           <button class="button button-small" type="button" data-project-action="select" data-project-id="${item.id}" ${canSelect ? "" : "disabled"}>Select</button>
