@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      lucide:
+        specifier: ^1.28.0
+        version: 1.28.0
     devDependencies:
       typescript:
         specifier: ^5.9.2
@@ -425,6 +429,9 @@ packages:
 
   loupe@3.2.1:
     resolution: {integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==}
+
+  lucide@1.28.0:
+    resolution: {integrity: sha512-sxVxWEXfq7rRNzmffDBRohYBOFjfoOhrO7jGGCLNNRoY2fPjeuqi2boXR2UAROEyQUm+xe13DGOQNtnmwv6Y3w==}
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -859,6 +866,8 @@ snapshots:
   js-tokens@9.0.1: {}
 
   loupe@3.2.1: {}
+
+  lucide@1.28.0: {}
 
   magic-string@0.30.21:
     dependencies:
