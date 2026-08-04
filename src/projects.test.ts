@@ -15,7 +15,7 @@ describe("projects and releases", () => {
     chooseDefaultIdea(state);
     state.work = 1000;
     expect(publish(state)).toBe(true);
-    expect(state).toMatchObject({ money: 100, fans: 4, gamesPublished: 1, work: 0 });
+    expect(state).toMatchObject({ money: 100, fans: 1, gamesPublished: 1, work: 0 });
   });
 
   it("generates distinct names and stable numbered cycles", () => {
@@ -27,9 +27,9 @@ describe("projects and releases", () => {
   it("requires both games and fans for project unlocks", () => {
     const state = createInitialState();
     state.gamesPublished = 3;
-    state.fans = 11;
+    state.fans = 2;
     expect(isProjectUnlocked(state, "pocket-puzzler")).toBe(false);
-    state.fans = 12;
+    state.fans = 3;
     expect(isProjectUnlocked(state, "pocket-puzzler")).toBe(true);
   });
 
@@ -37,7 +37,7 @@ describe("projects and releases", () => {
     const state = createInitialState();
     expect(selectProject(state, "pocket-puzzler")).toBe(false);
     state.gamesPublished = 3;
-    state.fans = 12;
+    state.fans = 3;
     state.work = 10;
     expect(selectProject(state, "pocket-puzzler")).toBe(false);
     state.work = 0;
