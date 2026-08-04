@@ -1,9 +1,8 @@
-import { DEVELOPMENT_PHASES, PROJECT_BY_ID, PROJECT_TITLES, PROJECTS, UPGRADE_BY_ID } from "./data";
+import { DEVELOPMENT_PHASES, PROJECT_BY_ID, PROJECT_TITLES, PROJECTS, UPGRADE_BY_ID, UPGRADES } from "./data";
 import type { DevelopmentPhase, GameState, ProjectDefinition, ProjectId, UpgradeId } from "./types";
 
 export const SAVE_KEY = "pixel-studio-tycoon-save-v2";
 export const MAX_OFFLINE_SECONDS = 60 * 60 * 4;
-export const MAX_FOCUS = 100;
 
 export function createInitialState(now = Date.now()): GameState {
   return {
@@ -16,7 +15,7 @@ export function createInitialState(now = Date.now()): GameState {
     currentProjectId: "tiny-adventure",
     selectedProjectId: "tiny-adventure",
     projectQueue: [],
-    upgradeLevels: { tools: 0, marketing: 0, team: 0, pipeline: 0 },
+    upgradeLevels: { research: 0, prototype: 0, workstation: 0, playtesting: 0, storefront: 0, team: 0, pipeline: 0 },
     autoPublish: false,
     focus: 0,
     lastSavedAt: now,
@@ -28,17 +27,16 @@ export function getCurrentProject(state: GameState): ProjectDefinition {
 }
 
 export function getClickPower(state: GameState): number {
-  return Math.pow(2, state.upgradeLevels.tools);
+  const phase = getCurrentPhase(state).phase;
+  const upgrade = UPGRADES.find((item) => item.phaseId === phase.id);
+  const level = upgrade ? state.upgradeLevels[upgrade.id] : 0;
+  return 10 * (1 + level * (upgrade?.efficiencyPerLevel ?? 0));
 }
 
 export function getBaseProduction(state: GameState): number {
   const level = state.upgradeLevels.team;
   if (level === 0) return 0;
   return level * Math.pow(1.32, Math.max(0, level - 1));
-}
-
-export function getFocusMultiplier(state: GameState): number {
-  return 1 + state.focus / MAX_FOCUS;
 }
 
 export function getUpgradeCost(state: GameState, id: UpgradeId): number {
@@ -52,7 +50,7 @@ export function isUpgradeUnlocked(state: GameState, id: UpgradeId): boolean {
 }
 
 export function getFanReward(state: GameState, project = getCurrentProject(state)): number {
-  return Math.round(project.fanReward * Math.pow(1.5, state.upgradeLevels.marketing));
+  return project.fanReward;
 }
 
 export function getGeneratedGameName(projectId: ProjectId, releaseNumber: number): string {
@@ -84,9 +82,8 @@ export function isProjectUnlocked(state: GameState, id: ProjectId): boolean {
 
 export function tap(state: GameState): void {
   const project = getCurrentProject(state);
-  const directWork = getClickPower(state) * getFocusMultiplier(state);
+  const directWork = getClickPower(state);
   state.work = Math.min(project.workRequired, state.work + directWork);
-  state.focus = Math.min(MAX_FOCUS, state.focus + 9);
 }
 
 export function canPublish(state: GameState): boolean {
@@ -148,13 +145,11 @@ export function buyUpgrade(state: GameState, id: UpgradeId): boolean {
 }
 
 export function advanceRealtime(state: GameState, seconds: number): number {
-  const production = getBaseProduction(state) * getFocusMultiplier(state) * seconds;
-  state.focus = Math.max(0, state.focus - 4 * seconds);
+  const production = getBaseProduction(state) * seconds;
   return applyProduction(state, production);
 }
 
 export function advanceOffline(state: GameState, seconds: number): number {
-  state.focus = 0;
   return applyProduction(state, getBaseProduction(state) * Math.min(seconds, MAX_OFFLINE_SECONDS));
 }
 
