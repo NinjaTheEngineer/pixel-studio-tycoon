@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canPublish, createInitialState, getGeneratedGameName, isProjectUnlocked, publish, selectProject } from "./engine";
+import { chooseDefaultIdea } from "./test-helpers";
 
 describe("projects and releases", () => {
   it("refuses an unfinished release without changing rewards", () => {
@@ -11,6 +12,7 @@ describe("projects and releases", () => {
 
   it("awards the configured release rewards and resets work", () => {
     const state = createInitialState();
+    chooseDefaultIdea(state);
     state.work = 1000;
     expect(publish(state)).toBe(true);
     expect(state).toMatchObject({ money: 100, fans: 4, gamesPublished: 1, work: 0 });
