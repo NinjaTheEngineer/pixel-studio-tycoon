@@ -16,6 +16,21 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* 0.7 palette: midnight workspace, electric violet, mint income, warm milestones. */
+:root {
+  --background: #090b14;
+  --surface: #121625;
+  --surface-raised: #1a2033;
+  --surface-soft: #252c43;
+  --text: #f7f7fb;
+  --muted: #9aa3ba;
+  --border: #303951;
+  --primary: #7c6cff;
+  --primary-hover: #9a8fff;
+  --accent: #56d9ad;
+  --warning: #ffbd66;
+}
+
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--text); background: radial-gradient(circle at 15% 0%, rgba(140, 124, 255, .16), transparent 34rem), radial-gradient(circle at 100% 85%, rgba(94, 225, 179, .09), transparent 30rem), var(--background); }
 button, input { font: inherit; }
@@ -183,11 +198,11 @@ body { min-height: 100dvh; overflow: hidden; }
 .studio-panel, .management-panel, .planning-section { display: none; height: calc(100dvh - 145px); margin: 0; border-radius: 15px; overflow-y: auto; box-shadow: none; }
 .studio-panel.active-view { display: grid; }
 .management-panel.active-view, .planning-section.active-view { display: block; }
-.studio-panel { min-height: 0; padding: 12px; grid-template-rows: auto auto auto auto; align-content: start; }
+.studio-panel { min-height: 0; padding: 12px; grid-template-rows: 190px 250px 16px minmax(34px, auto); align-content: start; cursor: pointer; touch-action: manipulation; }
 .management-panel { position: static; max-height: none; padding: 14px; }
 .planning-section { padding: 14px; }
 .room-decoration { display: none; }
-.workstation { width: min(300px, 86%); margin: 8px auto 2px; opacity: 1; transform: scale(.82); cursor: pointer; touch-action: manipulation; user-select: none; }
+.workstation { width: 280px; height: 220px; margin: 10px auto 0; opacity: 1; transform: none; cursor: pointer; touch-action: manipulation; user-select: none; align-self: center; }
 .workstation:hover .monitor { border-color: var(--primary); }
 .workstation:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 14px; }
 .workstation[aria-disabled="true"] { opacity: .45; cursor: default; }
@@ -196,7 +211,7 @@ body { min-height: 100dvh; overflow: hidden; }
 .workstation.shake .monitor { animation: computer-shake .2s linear; }
 @keyframes tap-float { 0% { opacity: 1; transform: translate(-50%, 8px) scale(.8); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -54px) scale(1.15); } }
 @keyframes computer-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
-.phase-panel { min-height: 0; margin: 6px 0 0; padding: 10px; grid-template-columns: 40px 1fr; grid-template-rows: auto 28px 40px auto; column-gap: 10px; }
+.phase-panel { min-height: 180px; height: 180px; margin: 0; padding: 10px; grid-template-columns: 40px 1fr; grid-template-rows: auto 32px 46px 42px; column-gap: 10px; }
 .phase-heading { margin-bottom: 5px; font-size: .66rem; }
 .current-phase-icon { width: 40px; height: 40px; border-radius: 10px; font-size: 1.1rem; }
 .phase-panel h2 { font-size: .95rem; }
@@ -214,13 +229,23 @@ body { min-height: 100dvh; overflow: hidden; }
 .automation-panel { margin-top: 12px; padding-top: 10px; }
 .project-grid, .idea-grid { grid-template-columns: 1fr; gap: 7px; margin-top: 10px; }
 .project-card, .idea-card { padding: 11px; }
+.idea-dialog { width: min(440px, calc(100% - 16px)); max-height: calc(100dvh - 20px); padding: 16px; overflow-y: auto; }
+.idea-dialog .idea-card p { min-height: 0; }
+.idea-dialog .idea-card dl { margin: 6px 0 10px; }
+.idea-dialog .button-small { min-height: 36px; }
 .phone-nav { position: fixed; z-index: 20; left: 50%; bottom: 8px; width: min(460px, calc(100% - 20px)); height: 56px; padding: 5px; border: 1px solid var(--border); border-radius: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: rgba(23, 26, 44, .97); box-shadow: var(--shadow); transform: translateX(-50%); }
-.phone-nav .button { min-height: 44px; padding: 6px; border-color: transparent; background: transparent; font-size: .75rem; }
+.phone-nav button { min-height: 44px; padding: 5px; border: 1px solid transparent; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 7px; color: var(--muted); background: transparent; font-size: .75rem; cursor: pointer; }
+.phone-nav button svg { width: 18px; height: 18px; }
+.phone-nav button.active { border-color: var(--primary); color: var(--text); background: linear-gradient(135deg, rgba(124,108,255,.28), rgba(86,217,173,.12)); }
 .phone-nav .button.active { border-color: var(--primary); color: var(--accent); background: var(--surface-soft); }
+.resource-card svg { width: 18px; height: 18px; color: var(--accent); }
+.upgrade-icon svg, .current-phase-icon svg { width: 20px; height: 20px; }
+.phase-step svg { width: 12px; height: 12px; }
 .tutorial-step-count { margin-bottom: 12px; color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
 
 @media (max-width: 380px) {
   .resource-card { padding: 6px 4px; }
   .studio-panel, .management-panel, .planning-section { height: calc(100dvh - 138px); }
-  .workstation { transform: scale(.72); margin: -5px auto -12px; }
+  .studio-panel { grid-template-rows: 180px 220px 16px minmax(30px, auto); }
+  .workstation { width: 250px; height: 205px; margin: 2px auto 0; transform: none; }
 }
