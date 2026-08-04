@@ -1,49 +1,35 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Build games, gain fans, and grow a tiny studio in this idle clicker prototype.">
-  <meta name="theme-color" content="#141626">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Build games, automate production, and grow a tiny bedroom studio into an industry giant.">
+  <meta name="theme-color" content="#111321">
   <title>Pixel Studio Tycoon</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="game.js" defer></script>
 </head>
 <body>
   <main class="game-shell">
     <header class="game-header">
       <div>
-        <p class="eyebrow">Idle clicker MVP</p>
+        <p class="eyebrow">Version 0.2 - Automation</p>
         <h1>Pixel Studio Tycoon</h1>
-        <p class="tagline">Code games. Build an audience. Grow your studio.</p>
+        <p class="tagline">Code games. Build a team. Automate your studio.</p>
       </div>
       <button class="text-button" id="reset-button" type="button">Reset progress</button>
     </header>
 
     <section class="resource-grid" aria-label="Studio resources">
-      <article class="resource-card">
-        <span>Money</span>
-        <strong id="money-value">$0</strong>
-      </article>
-      <article class="resource-card">
-        <span>Fans</span>
-        <strong id="fans-value">0</strong>
-      </article>
-      <article class="resource-card">
-        <span>Games</span>
-        <strong id="games-value">0</strong>
-      </article>
-      <article class="resource-card">
-        <span>Production</span>
-        <strong id="production-value">0/s</strong>
-      </article>
+      <article class="resource-card"><span>Money</span><strong id="money-value">$0</strong></article>
+      <article class="resource-card"><span>Fans</span><strong id="fans-value">0</strong></article>
+      <article class="resource-card"><span>Games</span><strong id="games-value">0</strong></article>
+      <article class="resource-card"><span>Idle production</span><strong id="production-value">0/s</strong></article>
     </section>
 
     <div class="game-grid">
       <section class="studio-panel" aria-labelledby="current-project-title">
         <div class="room-decoration" aria-hidden="true">
-          <span class="plant">â™£</span>
-          <span class="poster">DEV<br>MODE</span>
+          <span class="plant">+</span>
+          <span class="poster">SHIP<br>SMALL</span>
           <span class="lamp"></span>
         </div>
 
@@ -51,7 +37,7 @@
           <div class="monitor">
             <span class="monitor-label">CURRENT PROJECT</span>
             <strong id="current-project-title">Tiny Adventure</strong>
-            <span id="code-value">0 / 25 code</span>
+            <span id="work-value">0 / 25 work</span>
           </div>
           <div class="desk"></div>
         </div>
@@ -60,62 +46,55 @@
           <div class="progress-fill" id="progress-fill"></div>
         </div>
 
+        <div class="focus-row">
+          <div>
+            <span>Studio focus</span>
+            <strong id="focus-multiplier">x1.00</strong>
+          </div>
+          <div class="focus-track" role="progressbar" aria-label="Studio focus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="focus-progress">
+            <div class="focus-fill" id="focus-fill"></div>
+          </div>
+        </div>
+
         <div class="primary-actions">
-          <button class="button button-primary" id="code-button" type="button">Write code +1</button>
+          <button class="button button-primary" id="work-button" type="button">Do focused work +1</button>
           <button class="button" id="publish-button" type="button" disabled>Publish game</button>
         </div>
 
-        <p class="status-message" id="status-message" aria-live="polite">Write code to develop your first game.</p>
+        <p class="status-message" id="status-message" aria-live="polite">Start with a focused work session.</p>
       </section>
 
-      <aside class="shop-panel" aria-labelledby="shop-title">
+      <aside class="management-panel">
         <div class="section-heading">
-          <div>
-            <p class="eyebrow">Studio shop</p>
-            <h2 id="shop-title">Upgrades</h2>
-          </div>
+          <div><p class="eyebrow">Studio management</p><h2>Upgrade paths</h2></div>
           <span class="save-status" id="save-status">Saved locally</span>
         </div>
+        <div class="upgrade-list" id="upgrade-list"></div>
 
-        <div class="upgrade-list">
-          <article class="upgrade-item">
-            <div>
-              <h3>Mechanical Keyboard</h3>
-              <p>Double the code produced by every click.</p>
-              <span id="keyboard-level">Level 0 / 1</span>
-            </div>
-            <button class="button button-small" id="keyboard-button" type="button" disabled>Buy Â· $20</button>
-          </article>
-
-          <article class="upgrade-item">
-            <div>
-              <h3>Junior Developer</h3>
-              <p>Automatically produces one code every second.</p>
-              <span id="developer-level">Hired 0 / 1</span>
-            </div>
-            <button class="button button-small" id="developer-button" type="button" disabled>Hire Â· $50</button>
-          </article>
-
-          <article class="upgrade-item locked">
-            <div>
-              <h3>Next milestone</h3>
-              <p>More upgrades unlock after the MVP is tested.</p>
-              <span>Coming in version 0.2</span>
-            </div>
-          </article>
-        </div>
-
-        <div class="how-to-play">
-          <h2>Core loop</h2>
-          <ol>
-            <li>Write 25 code.</li>
-            <li>Publish for $20 and 5 fans.</li>
-            <li>Buy upgrades.</li>
-            <li>Build the next game faster.</li>
-          </ol>
+        <div class="automation-panel">
+          <div>
+            <h2>Release automation</h2>
+            <p>Publish finished games and begin the next queued project without a confirmation tap.</p>
+          </div>
+          <label class="switch">
+            <input id="auto-publish-toggle" type="checkbox" disabled>
+            <span>Auto publish</span>
+          </label>
         </div>
       </aside>
     </div>
+
+    <section class="planning-section" aria-labelledby="projects-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">Production planning</p><h2 id="projects-title">Game projects</h2></div>
+        <span id="queue-capacity">Queue 0 / 3</span>
+      </div>
+      <div class="project-grid" id="project-list"></div>
+      <div class="queue-panel">
+        <h2>Next projects</h2>
+        <div id="queue-list" class="queue-list"></div>
+      </div>
+    </section>
   </main>
 
   <dialog id="reset-dialog">
@@ -128,5 +107,7 @@
       </div>
     </form>
   </dialog>
+
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
