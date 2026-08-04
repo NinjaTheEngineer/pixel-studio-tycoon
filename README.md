@@ -1,42 +1,47 @@
 # Pixel Studio Tycoon
 
-A small idle-clicker game-development tycoon built as a portfolio MVP.
+A browser-based idle game-development tycoon. Start with a tiny solo project, build a team and release pipeline, then grow toward a much larger studio.
 
 ## Play
 
-The GitHub Pages version will be available at:
-
 <https://ninjatheengineer.github.io/pixel-studio-tycoon/>
 
-## Core loop
+## Version 0.2
 
-1. Write code to complete a game.
-2. Publish the game to earn money and fans.
-3. Buy a keyboard upgrade.
-4. Hire a developer for passive production.
-5. Develop and publish the next game faster.
+- Three projects with different work and reward profiles
+- Active coding taps that build Focus and multiply all production
+- Developer Tools, Development Team, and Release Pipeline upgrade paths
+- Fully automatic publishing after the pipeline is unlocked
+- A configurable three-slot project queue
+- Versioned local saves, v1 migration, and offline progress
+- Responsive desktop and mobile interface
+- Pure economy engine covered by automated tests
 
-## MVP features
+Focus is deliberately a studio-wide multiplier instead of a simple click bonus. This keeps tapping valuable after automation is unlocked without making it mandatory.
 
-- Active clicking
-- Game-development progress
-- Publishing rewards
-- One click upgrade
-- One automation upgrade
-- Automatic local saving
-- Limited offline progress
-- Responsive desktop and mobile layout
+## Develop locally
 
-## Run locally
+Requirements: Node.js 24 and pnpm 10 or newer.
 
-Open `index.html` in a browser. No build process or dependencies are required.
+```bash
+pnpm install
+pnpm dev
+```
 
-## Roadmap
+Validation and production build:
 
-- Additional equipment and employees
-- Multiple game genres
-- Research and technology unlocks
-- Studio room progression
-- Sound and visual feedback
-- Improved balance and accessibility
+```bash
+pnpm test
+pnpm build
+```
 
+GitHub Actions runs both commands and deploys `dist/` to GitHub Pages on every push to `main`.
+
+## Next milestone
+
+- Tune the first 15â€“20 minutes from playtest data
+- Add visible studio-room growth and stronger feedback
+- Add milestones and the first prestige prototype
+- Expand projects, staff roles, and strategic genre choices
+
+Ads and commercial platform wrappers are intentionally deferred until the core economy is fun and stable.
