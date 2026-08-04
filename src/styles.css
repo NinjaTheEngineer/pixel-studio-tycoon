@@ -55,6 +55,15 @@ h3 { margin-bottom: 6px; font-size: 1rem; }
 .progress { height: 16px; }
 .progress-fill, .focus-fill { width: 0; height: 100%; border-radius: inherit; transition: width 180ms ease; }
 .progress-fill { background: linear-gradient(90deg, var(--primary), var(--accent)); }
+.phase-panel { margin-top: 14px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(13, 15, 27, .5); }
+.phase-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; color: var(--muted); font-size: .76rem; }
+.phase-heading strong { color: var(--text); }
+.phase-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.phase-step { min-width: 0; padding: 8px 5px; border: 1px solid var(--border); border-radius: 8px; display: grid; justify-items: center; gap: 4px; color: var(--muted); text-align: center; opacity: .52; }
+.phase-step span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-soft); font-size: .68rem; }
+.phase-step strong { font-size: .66rem; font-weight: 650; }
+.phase-step.active { border-color: var(--warning); color: var(--warning); opacity: 1; }
+.phase-step.complete { border-color: var(--accent); color: var(--accent); opacity: .82; }
 .focus-row { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px; margin-top: 14px; }
 .focus-row > div:first-child { display: flex; gap: 8px; align-items: baseline; white-space: nowrap; }
 .focus-row span { color: var(--muted); font-size: .8rem; }
@@ -122,6 +131,8 @@ dialog p { color: var(--muted); line-height: 1.5; }
   .button-small { width: 100%; }
   .project-grid { grid-template-columns: 1fr; }
   .focus-row { grid-template-columns: 1fr; }
+  .phase-list { grid-template-columns: 1fr; }
+  .phase-step { grid-template-columns: 24px 1fr; justify-items: start; text-align: left; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
