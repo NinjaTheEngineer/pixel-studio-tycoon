@@ -1,11 +1,11 @@
 import type { DevelopmentPhase, ProjectDefinition, ProjectId, UpgradeDefinition, UpgradeId } from "./types";
 
 export const DEVELOPMENT_PHASES: DevelopmentPhase[] = [
-  { id: "concept", name: "Concept", description: "You are researching references, defining the audience, and writing the core game idea.", action: "Researching the game concept", share: 0.15 },
-  { id: "preproduction", name: "Pre-production", description: "You are testing the core loop, cutting risky ideas, and planning a realistic solo scope.", action: "Building and reviewing prototypes", share: 0.2 },
-  { id: "production", name: "Production", description: "You are programming systems, creating content, and assembling the playable game.", action: "Developing the playable build", share: 0.35 },
-  { id: "polish", name: "Polish & QA", description: "You are finding bugs, tuning balance, and improving usability and feedback.", action: "Testing, fixing, and polishing", share: 0.2 },
-  { id: "launch", name: "Launch prep", description: "You are preparing screenshots, the store page, the final build, and release notes.", action: "Preparing the game for release", share: 0.1 },
+  { id: "concept", name: "Concept", description: "You are researching references, defining the audience, and writing the core game idea.", action: "Researching the game concept", icon: "âœ¦", share: 0.15 },
+  { id: "preproduction", name: "Pre-production", description: "You are testing the core loop, cutting risky ideas, and planning a realistic solo scope.", action: "Building and reviewing prototypes", icon: "â—‡", share: 0.2 },
+  { id: "production", name: "Production", description: "You are programming systems, creating content, and assembling the playable game.", action: "Developing the playable build", icon: "âŒ˜", share: 0.35 },
+  { id: "polish", name: "Polish & QA", description: "You are finding bugs, tuning balance, and improving usability and feedback.", action: "Testing, fixing, and polishing", icon: "âœ“", share: 0.2 },
+  { id: "launch", name: "Launch prep", description: "You are preparing screenshots, the store page, the final build, and release notes.", action: "Preparing the game for release", icon: "â†‘", share: 0.1 },
 ];
 
 export const PROJECT_TITLES: Record<ProjectId, string[]> = {
