@@ -15,7 +15,7 @@
         <h1>Pixel Studio Tycoon</h1>
         <p class="tagline">Code games. Build a team. Automate your studio.</p>
       </div>
-      <button class="text-button" id="reset-button" type="button">Reset progress</button>
+      <div class="header-actions"><button class="text-button" id="help-button" type="button">How to play</button><button class="text-button" id="reset-button" type="button">Reset progress</button></div>
     </header>
 
     <section class="resource-grid" aria-label="Studio resources">
@@ -87,14 +87,6 @@
         <div><p class="eyebrow">Production planning</p><h2 id="projects-title">Game projects</h2></div>
         <span id="queue-capacity">Queue 0 / 3</span>
       </div>
-      <div class="brainstorm-panel" id="brainstorm-panel">
-        <div class="brainstorm-heading">
-          <div><p class="eyebrow">Next milestone</p><h2>Choose one project idea</h2></div>
-          <span id="project-complexity">1 objective per phase</span>
-        </div>
-        <p>Every release should matter. Choose reliability, balanced potential, or a difficult idea with a higher ceiling.</p>
-        <div class="idea-grid" id="idea-list"></div>
-      </div>
       <div class="project-grid" id="project-list"></div>
       <div class="queue-panel">
         <h2>Next projects</h2>
@@ -112,6 +104,29 @@
         <button class="button button-danger" id="confirm-reset" value="confirm">Reset</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="idea-dialog" class="idea-dialog">
+    <div class="brainstorm-panel" id="brainstorm-panel">
+      <div class="brainstorm-heading">
+        <div><p class="eyebrow">Studio brainstorm</p><h2>Choose your next milestone</h2></div>
+        <span id="project-complexity">1 objective per phase</span>
+      </div>
+      <p>Safe is reliable, Promising is balanced, and Wild takes longer for a chance at a much higher ceiling.</p>
+      <div class="idea-grid" id="idea-list"></div>
+    </div>
+  </dialog>
+
+  <dialog id="tutorial-dialog" class="tutorial-dialog">
+    <p class="eyebrow">Bedroom studio guide</p>
+    <h2>Build one meaningful game at a time</h2>
+    <div class="tutorial-grid">
+      <article><strong>1. Choose an idea</strong><p>Compare Safe, Promising, and Wild concepts. Riskier projects take more work but have greater potential.</p></article>
+      <article><strong>2. Work through phases</strong><p>Concept, Pre-production, Production, Polish & QA, and Launch each have their own progress and upgrade.</p></article>
+      <article><strong>3. Get milestone funding</strong><p>Completing phases pays part of the project budget, so you can improve the studio before release.</p></article>
+      <article><strong>4. Buy specific improvements</strong><p>Every upgrade card states exactly which phase or automation system it improves.</p></article>
+    </div>
+    <button class="button button-primary" id="tutorial-done" type="button">Start brainstorming</button>
   </dialog>
 
   <script type="module" src="/src/main.ts"></script>
