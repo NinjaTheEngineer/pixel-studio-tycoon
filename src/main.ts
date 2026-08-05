@@ -2,6 +2,7 @@ import "./styles.css";
 import { BadgeDollarSign, BookOpen, BriefcaseBusiness, CircleDollarSign, FlaskConical, Gamepad2, HandCoins, Laptop, Megaphone, PackageCheck, Rocket, Settings, TestTubeDiagonal, Users, Wrench, createIcons } from "lucide";
 import { DEVELOPMENT_PHASES, PROJECTS, PROJECT_BY_ID, UPGRADES } from "./data";
 import { generateIdeaOptions } from "./ideas";
+import { getUpgradeStructureKey } from "./ui-model";
 import {
   SAVE_KEY,
   advanceOffline,
@@ -52,6 +53,7 @@ function element<T extends HTMLElement>(id: string): T {
 }
 
 const ui = {
+  gameShell: element<HTMLElement>("game-shell"),
   money: element("money-value"),
   fans: element("fans-value"),
   games: element("games-value"),
@@ -127,7 +129,10 @@ function performComputerAction(): void {
     const gameName = state.currentGameName;
     const fanReward = getFanReward(state, project);
     const releasePayment = getReleasePayment(state);
-    if (publish(state)) message = `${gameName} launched! Final payment: $${formatNumber(releasePayment)} plus ${formatNumber(fanReward)} Patron${fanReward === 1 ? "" : "s"}.`;
+    if (publish(state)) {
+      message = `${gameName} launched! Final payment: $${formatNumber(releasePayment)} plus ${formatNumber(fanReward)} Patron${fanReward === 1 ? "" : "s"}.`;
+      playJuice("release-pop");
+    }
     saveAndRender();
     return;
   }
@@ -142,6 +147,7 @@ function performComputerAction(): void {
   ui.computerArea.classList.add("shake");
   const phase = getCurrentPhase(state).phase;
   const milestonePayment = state.money - moneyBefore;
+  if (milestonePayment > 0) playJuice("milestone-pop");
   message = canPublish(state)
     ? "Development is complete. Publish when you are ready."
     : milestonePayment > 0
@@ -174,6 +180,8 @@ ui.upgradeList.addEventListener("click", (event) => {
   if (!buyUpgrade(state, id)) return;
   const upgrade = UPGRADES.find((item) => item.id === id);
   message = `${upgrade?.name ?? "Upgrade"} improved to level ${state.upgradeLevels[id]}.`;
+  playJuice("purchase-pop");
+  button.closest(".upgrade-item")?.classList.add("just-purchased");
   saveAndRender();
 });
 
@@ -417,29 +425,39 @@ function renderIdeas(): void {
 }
 
 function renderUpgrades(): void {
-  const nextKey = `${state.money}|${state.gamesPublished}|${Object.values(state.upgradeLevels).join("|")}`;
-  if (nextKey === upgradeRenderKey) return;
-  upgradeRenderKey = nextKey;
-  ui.upgradeList.innerHTML = UPGRADES.map((upgrade) => {
+  const nextKey = getUpgradeStructureKey(state);
+  if (nextKey !== upgradeRenderKey) {
+    upgradeRenderKey = nextKey;
+    ui.upgradeList.innerHTML = UPGRADES.map((upgrade) => {
+      const level = state.upgradeLevels[upgrade.id];
+      const unlocked = isUpgradeUnlocked(state, upgrade.id);
+      return `
+        <article class="upgrade-item">
+          <span class="upgrade-icon" aria-hidden="true"><i data-lucide="${UPGRADE_ICONS[upgrade.id]}"></i></span>
+          <div>
+            <span class="path-label">${upgrade.path} path</span>
+            <h3>${upgrade.name}</h3>
+            <p>${upgrade.description}</p>
+            <span>${unlocked ? `Level ${level} / ${upgrade.maxLevel}` : `Unlocks after game ${upgrade.unlockGames}`}</span>
+          </div>
+          <button class="button button-small" type="button" data-upgrade="${upgrade.id}"></button>
+        </article>`;
+    }).join("");
+  }
+  updateUpgradeButtons();
+}
+
+function updateUpgradeButtons(): void {
+  for (const upgrade of UPGRADES) {
+    const button = ui.upgradeList.querySelector<HTMLButtonElement>(`[data-upgrade="${upgrade.id}"]`);
+    if (!button) continue;
     const level = state.upgradeLevels[upgrade.id];
     const maxed = level >= upgrade.maxLevel;
     const unlocked = isUpgradeUnlocked(state, upgrade.id);
     const cost = getUpgradeCost(state, upgrade.id);
-    const disabled = !unlocked || maxed || state.money < cost;
-    return `
-      <article class="upgrade-item">
-        <span class="upgrade-icon" aria-hidden="true"><i data-lucide="${UPGRADE_ICONS[upgrade.id]}"></i></span>
-        <div>
-          <span class="path-label">${upgrade.path} path</span>
-          <h3>${upgrade.name}</h3>
-          <p>${upgrade.description}</p>
-          <span>${unlocked ? `Level ${level} / ${upgrade.maxLevel}` : `Unlocks after game ${upgrade.unlockGames}`}</span>
-        </div>
-        <button class="button button-small" type="button" data-upgrade="${upgrade.id}" ${disabled ? "disabled" : ""}>
-          ${!unlocked ? "Locked" : maxed ? "Maxed" : `Buy - $${formatNumber(cost)}`}
-        </button>
-      </article>`;
-  }).join("");
+    button.disabled = !unlocked || maxed || state.money < cost;
+    button.textContent = !unlocked ? "Locked" : maxed ? "Maxed" : `Buy - $${formatNumber(cost)}`;
+  }
 }
 
 function renderProjects(): void {
@@ -495,6 +513,13 @@ function renderLucideIcons(): void {
     icons: { BadgeDollarSign, BookOpen, BriefcaseBusiness, CircleDollarSign, FlaskConical, Gamepad2, HandCoins, Laptop, Megaphone, PackageCheck, Rocket, Settings, TestTubeDiagonal, Users, Wrench },
     attrs: { "stroke-width": 1.8 },
   });
+}
+
+function playJuice(className: "milestone-pop" | "purchase-pop" | "release-pop"): void {
+  ui.gameShell.classList.remove(className);
+  void ui.gameShell.offsetWidth;
+  ui.gameShell.classList.add(className);
+  window.setTimeout(() => ui.gameShell.classList.remove(className), 700);
 }
 
 function renderTutorialStep(): void {
