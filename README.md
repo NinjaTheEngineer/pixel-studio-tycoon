@@ -33,7 +33,7 @@ A browser-based idle game-development tycoon. Start with a tiny solo project, bu
 - A configurable three-slot project queue
 - Versioned local saves, v1 migration, and offline progress
 - Responsive desktop and mobile interface
-- Pure economy engine covered by 48 active mechanics tests, with 11 future contracts pending
+- Economy and UI-model logic covered by 49 active tests, with 11 future contracts pending
 
 Each solo upgrade improves the development phase it logically supports. Staff is delayed until the player has shipped three solo games so hiring feels like a meaningful studio milestone.
 
