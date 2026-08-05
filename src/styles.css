@@ -42,11 +42,11 @@ h1, h2, h3, p { margin-top: 0; }
 .header-actions { display: flex; gap: 2px; }
 .text-button { padding: 6px; border: 0; color: var(--muted); background: transparent; font-size: .72rem; cursor: pointer; }
 
-.resource-grid { min-height: 54px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.resource-grid { min-height: 60px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
 .resource-card { min-width: 0; padding: 7px; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; gap: 5px; background: var(--panel); }
 .resource-card svg { width: 15px; height: 15px; flex: 0 0 15px; color: var(--mint); }
 .resource-card div { min-width: 0; }
-.resource-card span { display: block; overflow: hidden; color: var(--muted); font-size: .5rem; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.resource-card span { display: block; min-height: 18px; color: var(--muted); font-size: .47rem; line-height: 1.12; letter-spacing: .06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .resource-card strong { display: block; overflow: hidden; margin-top: 3px; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
 
 .game-grid { display: contents; }
@@ -103,6 +103,7 @@ h1, h2, h3, p { margin-top: 0; }
 .section-heading > span, .save-status, .brainstorm-heading > span { color: var(--muted); font-size: .62rem; }
 .upgrade-list { display: grid; gap: 7px; margin-top: 10px; }
 .upgrade-item { padding: 9px; border: 1px solid var(--border); border-radius: 10px; display: grid; grid-template-columns: 30px minmax(0,1fr) auto; align-items: center; gap: 7px; background: var(--raised); }
+.upgrade-item.just-purchased { animation: purchase-card .55s ease-out; }
 .upgrade-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: var(--violet); background: var(--phone); }
 .upgrade-icon svg { width: 16px; height: 16px; }
 .upgrade-item h3 { margin: 0 0 2px; font-size: .72rem; }
@@ -140,6 +141,14 @@ dd { margin: 2px 0 0; font-size: .62rem; font-weight: 700; }
 .phone-nav button { appearance: none; min-width: 0; border: 1px solid transparent; border-radius: 9px; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--muted); background: transparent; font-size: .67rem; cursor: pointer; }
 .phone-nav button svg { width: 16px; height: 16px; }
 .phone-nav button.active { border-color: var(--violet); color: var(--text); background: linear-gradient(135deg,rgba(133,117,255,.25),rgba(92,224,179,.1)); }
+
+.game-shell.milestone-pop { animation: milestone-shell .5s ease-out; }
+.game-shell.purchase-pop .resource-card:first-child { animation: money-spend .55s ease-out; }
+.game-shell.release-pop { animation: release-shell .7s ease-out; }
+@keyframes milestone-shell { 35% { box-shadow: 0 0 0 3px rgba(255,194,103,.55), 0 28px 90px rgba(0,0,0,.48); } }
+@keyframes money-spend { 35% { border-color: var(--gold); transform: scale(1.06); } }
+@keyframes purchase-card { 35% { border-color: var(--mint); transform: scale(1.025); background: #263953; } }
+@keyframes release-shell { 25% { transform: scale(1.008); box-shadow: 0 0 0 4px rgba(92,224,179,.5), 0 28px 90px rgba(0,0,0,.48); } 55% { box-shadow: 0 0 34px rgba(133,117,255,.65), 0 28px 90px rgba(0,0,0,.48); } }
 
 dialog { width: min(390px, calc(100% - 20px)); max-height: calc(100dvh - 20px); padding: 16px; border: 1px solid var(--border); border-radius: 14px; color: var(--text); background: var(--phone); overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.55); }
 dialog::backdrop { background: rgba(2,3,8,.82); }
