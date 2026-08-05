@@ -1,6 +1,7 @@
 export type ProjectId = "tiny-adventure" | "pocket-puzzler" | "cozy-farm";
 export type UpgradeId = "research" | "prototype" | "workstation" | "playtesting" | "storefront" | "patronSupport" | "team" | "pipeline";
 export type IdeaProfile = "safe" | "promising" | "wild";
+export type TeammateRole = "designer" | "programmer" | "artist";
 
 export interface ProjectIdea {
   id: string;
@@ -47,7 +48,7 @@ export interface UpgradeDefinition {
 }
 
 export interface GameState {
-  version: 2;
+  version: 3;
   work: number;
   money: number;
   fans: number;
@@ -61,6 +62,8 @@ export interface GameState {
   projectQueue: ProjectId[];
   upgradeLevels: Record<UpgradeId, number>;
   autoPublish: boolean;
+  teammateRole: TeammateRole | null;
+  teammateIntroSeen: boolean;
   focus: number;
   lastSavedAt: number;
 }

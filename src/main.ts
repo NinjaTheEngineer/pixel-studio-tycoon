@@ -2,13 +2,14 @@ import "./styles.css";
 import { BadgeDollarSign, BookOpen, BriefcaseBusiness, CircleDollarSign, FlaskConical, Gamepad2, HandCoins, Laptop, Megaphone, PackageCheck, Rocket, Settings, TestTubeDiagonal, Users, Wrench, createIcons } from "lucide";
 import { DEVELOPMENT_PHASES, PROJECTS, PROJECT_BY_ID, UPGRADES } from "./data";
 import { generateIdeaOptions } from "./ideas";
-import { getUpgradeStructureKey } from "./ui-model";
+import { getUpgradeStructureKey, isTeammateChoicePending } from "./ui-model";
 import {
   SAVE_KEY,
   advanceOffline,
   advanceRealtime,
   buyUpgrade,
   canPublish,
+  chooseTeammate,
   chooseIdea,
   createInitialState,
   formatNumber,
@@ -30,7 +31,7 @@ import {
   selectProject,
   tap,
 } from "./engine";
-import type { GameState, ProjectId, UpgradeId } from "./types";
+import type { GameState, ProjectId, TeammateRole, UpgradeId } from "./types";
 
 const OLD_SAVE_KEY = "pixel-studio-tycoon-save-v1";
 const TUTORIAL_KEY = "pixel-studio-tycoon-tutorial-v1";
@@ -94,6 +95,11 @@ const ui = {
   tutorialCopy: element("tutorial-copy"),
   tutorialBack: element<HTMLButtonElement>("tutorial-back"),
   tutorialNext: element<HTMLButtonElement>("tutorial-next"),
+  teammateDialog: element<HTMLDialogElement>("teammate-dialog"),
+  teammateList: element("teammate-list"),
+  studioStageBanner: element("studio-stage-banner"),
+  studioStageIcon: element("studio-stage-icon"),
+  studioStageCopy: element("studio-stage-copy"),
 };
 
 const TUTORIAL_STEPS = [
@@ -227,6 +233,16 @@ ui.tutorialNext.addEventListener("click", () => {
   if (!state.currentIdea && !ui.ideaDialog.open) ui.ideaDialog.showModal();
 });
 ui.ideaDialog.addEventListener("cancel", (event) => event.preventDefault());
+ui.teammateDialog.addEventListener("cancel", (event) => event.preventDefault());
+ui.teammateList.addEventListener("click", (event) => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-teammate]");
+  if (!button || !chooseTeammate(state, button.dataset.teammate as TeammateRole)) return;
+  const roleName = button.querySelector("strong")?.textContent ?? "teammate";
+  message = `${roleName} joined your small indie studio and now contributes automatic Work.`;
+  ui.teammateDialog.close();
+  playJuice("release-pop");
+  saveAndRender();
+});
 
 ui.queueList.addEventListener("click", (event) => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-remove-queue]");
@@ -265,8 +281,8 @@ function frame(now: number): void {
 
 function loadState(): GameState {
   try {
-    const saved = JSON.parse(localStorage.getItem(SAVE_KEY) ?? "null") as Partial<GameState> | null;
-    if (saved?.version === 2) return sanitizeState({ ...createInitialState(), ...saved } as GameState);
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY) ?? "null") as Record<string, unknown> | null;
+    if (saved?.version === 2 || saved?.version === 3) return sanitizeState({ ...createInitialState(), ...saved, version: 3 } as GameState);
     const old = JSON.parse(localStorage.getItem(OLD_SAVE_KEY) ?? "null") as Record<string, unknown> | null;
     if (old?.version === 1) return migrateOldState(old);
   } catch {
@@ -304,6 +320,10 @@ function sanitizeState(candidate: GameState): GameState {
     ? candidate.projectQueue.filter((id): id is ProjectId => Boolean(PROJECT_BY_ID[id])).slice(0, 3)
     : [];
   clean.autoPublish = Boolean(candidate.autoPublish) && clean.upgradeLevels.pipeline > 0;
+  clean.teammateRole = candidate.teammateRole === "designer" || candidate.teammateRole === "programmer" || candidate.teammateRole === "artist"
+    ? candidate.teammateRole
+    : null;
+  clean.teammateIntroSeen = Boolean(candidate.teammateIntroSeen) || Boolean(clean.teammateRole);
   clean.currentGameName = clean.currentIdea?.title ?? (typeof candidate.currentGameName === "string" && candidate.currentGameName.trim()
     ? candidate.currentGameName.trim().slice(0, 40)
     : "Choose your next project");
@@ -357,6 +377,8 @@ function render(): void {
   const currentPhase = getCurrentPhase(state);
   const currentObjective = getCurrentObjective(state);
   const companyStage = getCompanyStage(state);
+  const teammateNames: Record<TeammateRole, string> = { designer: "Designer", programmer: "Programmer", artist: "2D Artist" };
+  const hasTeammate = Boolean(state.teammateRole);
 
   ui.money.textContent = `$${formatNumber(state.money)}`;
   ui.fans.textContent = formatNumber(state.fans);
@@ -389,6 +411,10 @@ function render(): void {
   ui.autoPublishToggle.disabled = !pipelineUnlocked;
   ui.autoPublishToggle.checked = pipelineUnlocked && state.autoPublish;
   ui.status.textContent = message;
+  ui.studioPanel.classList.toggle("small-indie-studio", state.gamesPublished >= 3);
+  ui.studioStageBanner.classList.toggle("team-active", hasTeammate);
+  ui.studioStageIcon.textContent = hasTeammate ? "DUO" : state.gamesPublished >= 3 ? "HIRE" : "SOLO";
+  ui.studioStageCopy.textContent = state.teammateRole ? `${teammateNames[state.teammateRole]} joined` : state.gamesPublished >= 3 ? "First teammate ready" : "Bedroom studio";
   ui.queueCapacity.textContent = pipelineUnlocked ? `Queue ${state.projectQueue.length} / 3` : "Queue locked";
 
   renderUpgrades();
@@ -396,11 +422,18 @@ function render(): void {
   renderProjects();
   renderQueue();
   renderLucideIcons();
-  if (!state.currentIdea && !ideaDialogScheduled && !ui.ideaDialog.open && !ui.tutorialDialog.open && localStorage.getItem(TUTORIAL_KEY) === "complete") {
+  if (isTeammateChoicePending(state) && !ui.teammateDialog.open && !ui.tutorialDialog.open) {
+    window.setTimeout(() => {
+      if (!isTeammateChoicePending(state) || ui.teammateDialog.open) return;
+      if (ui.ideaDialog.open) ui.ideaDialog.close();
+      ui.teammateDialog.showModal();
+    }, 0);
+  }
+  if (!state.currentIdea && !isTeammateChoicePending(state) && !ideaDialogScheduled && !ui.ideaDialog.open && !ui.tutorialDialog.open && localStorage.getItem(TUTORIAL_KEY) === "complete") {
     ideaDialogScheduled = true;
     window.setTimeout(() => {
       ideaDialogScheduled = false;
-      if (!state.currentIdea && !ui.ideaDialog.open && !ui.tutorialDialog.open) ui.ideaDialog.showModal();
+      if (!state.currentIdea && !isTeammateChoicePending(state) && !ui.ideaDialog.open && !ui.tutorialDialog.open) ui.ideaDialog.showModal();
     }, 0);
   }
 }

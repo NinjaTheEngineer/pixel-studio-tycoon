@@ -120,9 +120,9 @@ export const UPGRADES: UpgradeDefinition[] = [
   },
   {
     id: "team",
-    name: "Development Team",
+    name: "Shared Studio Desks",
     path: "Idle",
-    description: "Adds passive Work every second, including while you are away. Higher levels scale production.",
+    description: "+75% teammate Work per second per level, including while you are away.",
     maxLevel: 8,
     baseCost: 300,
     costGrowth: 2.15,

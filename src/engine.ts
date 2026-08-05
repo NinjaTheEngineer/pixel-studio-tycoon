@@ -1,13 +1,13 @@
 import { DEVELOPMENT_PHASES, PROJECT_BY_ID, PROJECT_TITLES, PROJECTS, UPGRADE_BY_ID, UPGRADES } from "./data";
 import { generateIdeaOptions } from "./ideas";
-import type { DevelopmentPhase, GameState, ProjectDefinition, ProjectId, UpgradeId } from "./types";
+import type { DevelopmentPhase, GameState, ProjectDefinition, ProjectId, TeammateRole, UpgradeId } from "./types";
 
 export const SAVE_KEY = "pixel-studio-tycoon-save-v2";
 export const MAX_OFFLINE_SECONDS = 60 * 60 * 4;
 
 export function createInitialState(now = Date.now()): GameState {
   return {
-    version: 2,
+    version: 3,
     work: 0,
     money: 0,
     fans: 0,
@@ -21,6 +21,8 @@ export function createInitialState(now = Date.now()): GameState {
     projectQueue: [],
     upgradeLevels: { research: 0, prototype: 0, workstation: 0, playtesting: 0, storefront: 0, patronSupport: 0, team: 0, pipeline: 0 },
     autoPublish: false,
+    teammateRole: null,
+    teammateIntroSeen: false,
     focus: 0,
     lastSavedAt: now,
   };
@@ -76,9 +78,22 @@ export function getClickPower(state: GameState): number {
 }
 
 export function getBaseProduction(state: GameState): number {
-  const level = state.upgradeLevels.team;
-  if (level === 0) return 0;
-  return level * Math.pow(1.32, Math.max(0, level - 1));
+  if (!state.teammateRole) return 0;
+  const currentPhaseId = getCurrentPhase(state).phase.id;
+  const activePhases: Record<TeammateRole, string[]> = {
+    designer: ["concept", "preproduction"],
+    programmer: ["production", "polish"],
+    artist: ["production", "launch"],
+  };
+  if (!activePhases[state.teammateRole].includes(currentPhaseId)) return 0;
+  return 0.35 * (1 + state.upgradeLevels.team * 0.75);
+}
+
+export function chooseTeammate(state: GameState, role: TeammateRole): boolean {
+  if (state.gamesPublished < 3 || state.teammateRole) return false;
+  state.teammateRole = role;
+  state.teammateIntroSeen = true;
+  return true;
 }
 
 export function getPatronIncomePerSecond(state: GameState): number {

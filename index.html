@@ -11,7 +11,7 @@
   <main class="game-shell" id="game-shell">
     <header class="game-header">
       <div>
-        <p class="eyebrow">Version 0.8.1 - Interaction repair</p>
+        <p class="eyebrow">Version 0.9 - Small Indie Transition</p>
         <h1>Pixel Studio Tycoon</h1>
         <p class="tagline">Code games. Build a team. Automate your studio.</p>
       </div>
@@ -27,6 +27,7 @@
 
     <div class="game-grid">
       <section class="studio-panel active-view" id="work-view" aria-labelledby="current-project-title">
+        <div class="studio-stage-banner" id="studio-stage-banner"><span id="studio-stage-icon">SOLO</span><strong id="studio-stage-copy">Bedroom studio</strong></div>
         <div class="room-decoration" aria-hidden="true">
           <span class="plant">+</span>
           <span class="lamp"></span>
@@ -124,6 +125,18 @@
     <h2 id="tutorial-title">Choose a project idea</h2>
     <p id="tutorial-copy">Compare Safe, Promising, and Wild concepts before committing your bedroom studio.</p>
     <div class="dialog-actions"><button class="button" id="tutorial-back" type="button" disabled>Back</button><button class="button button-primary" id="tutorial-next" type="button">Next</button></div>
+  </dialog>
+
+  <dialog id="teammate-dialog" class="teammate-dialog">
+    <p class="eyebrow">Studio milestone</p>
+    <h2>Your bedroom studio needs its first teammate</h2>
+    <p>Choose a specialist. They work automatically during their strongest phases, even while you are away. This first hire is earned by publishing three games.</p>
+    <div class="teammate-grid" id="teammate-list">
+      <button type="button" data-teammate="designer"><strong>Game Designer</strong><span>0.35 Work/s during Concept and Pre-production</span></button>
+      <button type="button" data-teammate="programmer"><strong>Programmer</strong><span>0.35 Work/s during Production and Polish & QA</span></button>
+      <button type="button" data-teammate="artist"><strong>2D Artist</strong><span>0.35 Work/s during Production and Launch prep</span></button>
+    </div>
+    <p class="decision-note">This is a meaningful early specialty, not a permanent trap: later studio growth will add more roles.</p>
   </dialog>
 
   <script type="module" src="/src/main.ts"></script>

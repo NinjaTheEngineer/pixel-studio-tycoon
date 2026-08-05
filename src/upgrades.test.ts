@@ -32,13 +32,15 @@ describe("upgrades", () => {
     expect(state.upgradeLevels.research).toBe(3);
   });
 
-  it("scales passive team production by level", () => {
+  it("scales a chosen teammate through Shared Studio Desks", () => {
     const state = createInitialState();
     expect(getBaseProduction(state)).toBe(0);
+    state.teammateRole = "designer";
+    expect(getBaseProduction(state)).toBeCloseTo(0.35);
     state.upgradeLevels.team = 1;
-    expect(getBaseProduction(state)).toBe(1);
+    expect(getBaseProduction(state)).toBeCloseTo(0.6125);
     state.upgradeLevels.team = 2;
-    expect(getBaseProduction(state)).toBeCloseTo(2.64);
+    expect(getBaseProduction(state)).toBeCloseTo(0.875);
   });
 
   it("turns rare Patrons into recurring income", () => {
